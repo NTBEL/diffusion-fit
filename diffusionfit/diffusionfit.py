@@ -24,7 +24,7 @@ class Gaussian(DiffusionFitBase):
         interval = int(ntimes/n_rows) #+ 1
         columns = 4
         counter = 0
-        print(rows, columns)
+        #print(rows, columns)
         f_height = 4*rows
         f, axes = plt.subplots(rows, columns, figsize=(18, f_height), sharex=False, sharey=False)
         #x = np.linspace(-self.r_max, self.r_max, 201, endpoint=True)
@@ -48,13 +48,13 @@ class Gaussian(DiffusionFitBase):
             gamma = self._fitting_parameters[i][1]
             dF_sim = self.model(self.r, *self._fitting_parameters[i])
             image = self.images[self._idx_fitted_frames[i]] - self.background
-            axes[row, 0].imshow(image, cmap='viridis', vmin=0, vmax=1.5*vmax, extent=extent)
-            axes[row, 0].set_xlabel(r'x ($\mu m$)', fontsize=14)
-            axes[row, 0].set_ylabel(r'y ($\mu m$)', fontsize=14)
+            axes[row, 0].imshow(image, cmap='gray', vmin=0, vmax=1.5*vmax, extent=extent)
+            axes[row, 0].set_xlabel(r'x ($\mu$m)', fontsize=14)
+            axes[row, 0].set_ylabel(r'y ($\mu$m)', fontsize=14)
             axes[row, 0].set_title("Exp. Image - Time: {:.2f} s".format(time), fontdict={'fontsize':10}, pad=10)
-            axes[row, 1].imshow(dF_sim, cmap='viridis', vmin=0, vmax=vmax, extent=extent)
-            axes[row, 1].set_xlabel(r'x ($\mu m$)', fontsize=14)
-            axes[row, 1].set_ylabel(r'y ($\mu m$)', fontsize=14)
+            axes[row, 1].imshow(dF_sim, cmap='gray', vmin=0, vmax=vmax, extent=extent)
+            axes[row, 1].set_xlabel(r'x ($\mu$m)', fontsize=14)
+            axes[row, 1].set_ylabel(r'y ($\mu$m)', fontsize=14)
             axes[row, 1].set_title("2D Gaussian Fit - E: {:.1e} | $\gamma$: {:.1e}".format(E, gamma), fontdict={'fontsize':10}, pad=10)
             I_line_roi_exp = self.line_average(image)
             r_centers, I_ring_roi_exp, std_ring_roi_exp = self.radial_average(image)
@@ -67,8 +67,8 @@ class Gaussian(DiffusionFitBase):
             axes[row, 2].fill_between([-self.r_stim, self.r_stim],
                                       1.5*lineROI_zero_max, label='STIM',
                                       color='r', alpha=0.5)
-            axes[row, 2].plot(r_ex, I_line_roi_exp, linewidth=2, label='Exp.')
-            axes[row, 2].plot(r_ex, I_line_roi_fit, linewidth=4, label='from Fit')
+            axes[row, 2].plot(r_ex, I_line_roi_exp, linewidth=2, label='Exp.', color='grey')
+            axes[row, 2].plot(r_ex, I_line_roi_fit, linewidth=4, label='from Fit', color='k')
             axes[row, 2].set_title("Line ROI", fontdict={'fontsize':10}, pad=10)
             axes[row, 2].set_xlabel(r'Distance ($\mu$m)', fontsize=14)
             axes[row, 2].set_ylabel(r'$\Delta F$', fontsize=14)
@@ -79,10 +79,10 @@ class Gaussian(DiffusionFitBase):
                                        label='STIM', color='r', alpha=0.5)
             axes[row, 3].plot(r_centers, I_ring_roi_exp, linewidth=2,
                               label='Exp.', linestyle="", marker='8',
-                              markersize=10)
+                              markersize=10, color='grey')
             #r_centers, fit_r_avg, fit_r_std = self.radial_average(r_img, dF_sim)
             axes[row, 3].plot(r_centers, I_ring_roi_fit, linewidth=4,
-                              label='from Fit',  linestyle='--')
+                              label='from Fit',  linestyle='--', color='k')
             axes[row, 3].set_title("Ring ROI", fontdict={'fontsize':10}, pad=10)
             axes[row, 3].set_xlabel(r'Distance ($\mu$m)', fontsize=14)
             axes[row, 3].set_ylabel(r'$\Delta F$', fontsize=14)
@@ -96,6 +96,7 @@ class Gaussian(DiffusionFitBase):
         plt.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off', length=0)
         plt.grid(False)
         plt.title("Step 1 - 2D Gaussian fits over time", pad=40)
+        plt.tight_layout()
         if saveas is not None:
             plt.savefig(saveas)
         return

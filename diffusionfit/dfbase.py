@@ -9,7 +9,7 @@ from scipy.stats import linregress
 import skimage
 from skimage import io as skio
 import matplotlib.pyplot as plt
-
+import seaborn as sns
 
 class DiffusionFitBase(ABC):
     """Abstract base class for diffusion fitting."""
@@ -181,19 +181,23 @@ class DiffusionFitBase(ABC):
         pass
 
     def display_linear_fit(self, saveas=None):
+        
         t_v = self.times[self._idx_fitted_frames]
         gamma_vals = self._fitting_parameters[:,-1]
         R2_fit = self._linr_res.rvalue**2
         Ds_fit = self._Ds
         t0_fit = self._t0
         # Generate the plot for the gamma^2 linear fit - IOI step 2 fitting
-        plt.plot(t_v, gamma_vals**2, marker='o', linestyle="", label=None)
+        plt.plot(t_v, gamma_vals**2, marker='o', linestyle="", label=None,
+                 color='grey')
         tspan = np.linspace(0, np.max(t_v) * 1.1, 500)
         plt.plot(tspan, self.linear_model(tspan, self._Ds * 1e8, self._t0),
-                 linestyle='--', label='Fit')
+                 linestyle='--', label='Fit', color='k')
         plt.ylabel(r'$\gamma^2$')
         plt.xlabel('Time (s)')
-        plt.legend(loc=0)
+        plt.legend(loc=0, frameon=False)
         plt.title("Step 2 - linear fit of $\gamma^2$ vs. $t$ \n $R^2$={:.3f} | D={:.1f} x$10^{{-7}}$ cm$^2$/s | $t_0$={:.2f} s".format(R2_fit, Ds_fit*1e7, t0_fit), pad=20)
+        plt.tight_layout()
+        sns.despine()
         if saveas is not None:
             plt.savefig(saveas)
