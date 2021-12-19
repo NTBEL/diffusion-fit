@@ -22,6 +22,8 @@ class Gaussian(DiffusionFitBase):
         ntimes = len(t_v)
         rows = n_rows
         interval = int(ntimes/n_rows) #+ 1
+        if interval == 0:
+            interval = 1
         columns = 4
         counter = 0
         #print(rows, columns)
@@ -70,7 +72,7 @@ class Gaussian(DiffusionFitBase):
             axes[row, 2].plot(r_ex, I_line_roi_exp, linewidth=2, label='Exp.', color='grey')
             axes[row, 2].plot(r_ex, I_line_roi_fit, linewidth=4, label='from Fit', color='k')
             axes[row, 2].set_title("Line ROI", fontdict={'fontsize':10}, pad=10)
-            axes[row, 2].set_xlabel(r'Distance ($\mu$m)', fontsize=14)
+            axes[row, 2].set_xlabel(r'Position ($\mu$m)', fontsize=14)
             axes[row, 2].set_ylabel(r'$\Delta F$', fontsize=14)
             axes[row, 2].set_ylim((0, 1.25*lineROI_zero_max))
             axes[row, 2].legend(loc=0, fontsize=10)
