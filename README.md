@@ -8,9 +8,8 @@
 ## Table of Contents
 
  1. [Install](#install)
-     1. [pip install](#pip-install)
-     2. [conda install](#conda-install)
-     3. [Recomended additional software](#recomended-additional-software)
+     1. [Dependencies](#dependencies)
+     1. [Manual install](#manual-install)
  2. [License](#license)
  3. [Change Log](#change-log)
  4. [Documentation and Usage](#documentation-and-usage)
@@ -29,6 +28,7 @@
 
 **diffusion-fit** installs as the `diffusionfit` Python package. It is tested with Python 3.9.
 
+### Dependencies
 Note that `diffusion-fit` has the following core dependencies:
    * [NumPy](http://www.numpy.org/)
    * [SciPy](https://www.scipy.org/)
@@ -36,15 +36,12 @@ Note that `diffusion-fit` has the following core dependencies:
    * [Matplotlib](https://matplotlib.org/)
    * [seaborn](https://seaborn.pydata.org/)
 
-### pip install
-You can install the latest version of `diffusion-fit` using `pip` sourced from the GitHub repo:
+### Manual install
+First, download the repository. Then from the `diffusion-fit` folder/directory run
 ```
-pip install -e git+https://github.com/blakeaw/GAlibrate@v0.6.0#egg=galibrate
+python setup.py install
 ```
-However, this will not automatically install the core dependencies. You will have to do that separately:
-```
-pip install numpy scipy scikit-image matplotlib seaborn
-```
+
 Note that `diffusion-fit` is a private repository, so need a GitHub account and
 need to be part of the NTBEL organization to have access and install.
 
@@ -66,15 +63,29 @@ See: [CHANGELOG](CHANGELOG.md)
 # Documentation and Usage
 
 ### Quick Overview
-Principally, **GAlibrate** defines the **GAO** (continuous **G**enetic **A**lgorithm-based **O**ptimizer ) class,
+Principally, `diffusion-fit` defines the **Gaussian** class,
 ```python
-from galibrate import GAO
+from diffusonfit import Gaussian
 ```
-which defines an object that can be used setup and run a continuous genetic algorithm-based optimization (i.e., a maximization) of a user-defined fitness function over the search space of a given set of (model) parameters.
-
+which defines an object that can be used fit the 2D diffusion distribution with
+two-step fitting procedure, assuming the fluorescence from the diffusion cloud
+has a Gaussian distribution whose width changes over time. The procedure is
+adapted from the two-step fitting procedure described described in Nicholson and Tao 1993 [doi: 10.1016/S0006-3495(93)81324-9](https://doi.org/10.1016/S0006-3495(93)81324-9).
 
 ### Examples
-
+```python
+gaussian = Gaussian('images.tif',
+                    stimulation_frame=50, timestep=0.6,
+                    pixel_width=0.99, stimulation_radius=30)
+Dstar = gaussian.fit(verbose=True, s_to_n=3)                    
+```
+To see the plots corresponding to each of the two fitting steps:
+```python
+# Step 1
+gaussian.display_image_fits(saveas='step1_fits.png')
+# Step 2
+gaussian.display_linear_fit(saveas='step2_linfit.png')
+```
 
 ------
 
