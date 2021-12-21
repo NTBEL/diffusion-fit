@@ -54,7 +54,7 @@ for file in tqdm(files, desc='Samples: '):
         D = None
         Dstar_values.append({'sample:':file, 'D*(x10^-7 cm^2/s)':D})
         continue
-    Dstar_values.append({'sample:':file, 'D*(x10^-7 cm^2/s)':D*1e7})
+    Dstar_values.append({'sample:':sample_name, 'D*(x10^-7 cm^2/s)':D*1e7})
     fn_step1 = file_prefix + "_step1.png"
     gfit.display_image_fits(saveas=os.path.join(out_path, fn_step1))
     plt.close()
