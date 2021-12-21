@@ -4,12 +4,23 @@
 
 **diffusion-fit** is a python package for extract estimates of dye/peptide diffusion coefficients and loss rates from a time-sequence of fluorescence images.
 
+### What's new in
+
+#### version 0.2.0
+ * New command line interface so that diffusionfit can be run quickly from the command line.
+ * Optional progress bar to monitor analysis of image files when running diffusionfit from the command line. The progress bar is only displayed if [tqdm](https://github.com/tqdm/tqdm) is installed  
+ * Updated estimation of noise when signal/noise thresholding images during analysis.
+ * Automatic detection of the smallest dimension when the image is not square. Line ROIs are accordingly only estimated along this dimension and images are only fit at distances less than that limited distance.
+ * Quality of fit metrics are estimated for the image fitting and displayed on the corresponding plots.
+
+See the [CHANGELOG](CHANGELOG.md) for additional details.  
 
 ## Table of Contents
 
  1. [Install](#install)
      1. [Dependencies](#dependencies)
-     1. [Manual install](#manual-install)
+     2. [Manual install](#manual-install)
+     3. [Recomended additional software](#recomended-additional-software)
  2. [License](#license)
  3. [Change Log](#change-log)
  4. [Documentation and Usage](#documentation-and-usage)
@@ -40,11 +51,18 @@ Note that `diffusion-fit` has the following core dependencies:
 ### Manual install
 First, download the repository. Then from the `diffusion-fit` folder/directory run
 ```
-python setup.py install
+pip install .
 ```
 
 Note that `diffusion-fit` is a private repository, so need a GitHub account and
 need to be part of the NTBEL organization to have access and install.
+
+### Recommended additional software
+
+The following software is not required for the basic operation of **diffusonfit**, but provide extra capabilities and features when installed.
+
+#### tqdm
+Command line runs will display a progress bar that tracks the analysis of the set of image files when the [tqdm](https://github.com/tqdm/tqdm) package installed.  
 
 ------
 
