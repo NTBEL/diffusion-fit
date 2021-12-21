@@ -52,7 +52,7 @@ for file in tqdm(files, desc='Samples: '):
     D = gfit.fit(verbose=False, s_to_n=args.ston)
     if np.isnan(D):
         D = None
-        Dstar_values.append({'sample:':file, 'D*(x10^-7 cm^2/s)':D})
+        Dstar_values.append({'sample:':sample_name, 'D*(x10^-7 cm^2/s)':D})
         continue
     Dstar_values.append({'sample:':sample_name, 'D*(x10^-7 cm^2/s)':D*1e7})
     fn_step1 = file_prefix + "_step1.png"
