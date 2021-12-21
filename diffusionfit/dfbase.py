@@ -92,7 +92,7 @@ class DiffusionFitBase(ABC):
         r_sig = self.r_stim + 5 * self.pixel_width
         x_line = self._line
         r_line = np.abs(x_line)
-        r_noise = np.max(r_line) - 5 * self.pixel_width
+        r_noise = np.max(r_line) - 10 * self.pixel_width
         for f in range(start, end, interval):
             img = self.images[f] - self.background
             I_line = self.line_average(img)
@@ -100,7 +100,7 @@ class DiffusionFitBase(ABC):
             signal_mask = (r_line > (self.r_stim + self.pixel_width)) & (r_line < r_sig)
             signal = I_line[signal_mask].mean()
             noise_mask = r_line > r_noise
-            noise = I_line[signal_mask].std() / np.sqrt(len(I_line[signal_mask]))
+            noise = np.abs(I_line[noise_mask]).mean()
             signal_to_noise = signal / noise
             if signal_to_noise < s_to_n:
                 if verbose:

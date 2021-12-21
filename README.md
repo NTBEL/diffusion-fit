@@ -33,6 +33,7 @@ Note that `diffusion-fit` has the following core dependencies:
    * [NumPy](http://www.numpy.org/)
    * [SciPy](https://www.scipy.org/)
    * [scikit-image](https://scikit-image.org/)
+   * [pandas](https://pandas.pydata.org/)
    * [Matplotlib](https://matplotlib.org/)
    * [seaborn](https://seaborn.pydata.org/)
 
@@ -63,9 +64,9 @@ See: [CHANGELOG](CHANGELOG.md)
 # Documentation and Usage
 
 ### Quick Overview
-Principally, `diffusion-fit` defines the **Gaussian** class,
+Principally, `diffusion-fit` defines the **GaussianFit** class,
 ```python
-from diffusonfit import Gaussian
+from diffusonfit import GaussianFit
 ```
 which defines an object that can be used fit the 2D diffusion distribution with
 two-step fitting procedure, assuming the fluorescence from the diffusion cloud
@@ -74,17 +75,17 @@ adapted from the two-step fitting procedure described described in Nicholson and
 
 ### Examples
 ```python
-gaussian = Gaussian('images.tif',
+gfit = GaussianFit('images.tif',
                     stimulation_frame=50, timestep=0.6,
                     pixel_width=0.99, stimulation_radius=30)
-Dstar = gaussian.fit(verbose=True, s_to_n=3)                    
+Dstar = gfit.fit(verbose=True, s_to_n=3)                    
 ```
 To see the plots corresponding to each of the two fitting steps:
 ```python
 # Step 1
-gaussian.display_image_fits(saveas='step1_fits.png')
+gfit.display_image_fits(saveas='step1_fits.png')
 # Step 2
-gaussian.display_linear_fit(saveas='step2_linfit.png')
+gfit.display_linear_fit(saveas='step2_linfit.png')
 ```
 
 ------
