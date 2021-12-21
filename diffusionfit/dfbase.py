@@ -1,4 +1,4 @@
-"""
+"""Base class for diffusion fitting.
 """
 
 from abc import ABC, abstractmethod
@@ -19,6 +19,7 @@ class DiffusionFitBase(ABC):
         self._img_file = img_file
         self.images = skio.imread(img_file)
         self.n_frames = len(self.images)
+        self.n_pixels = np.prod(self.images[0].shape)
         # Assume input for indexing of frames starts at 1.
         self.stimulation_frame = stimulation_frame
         # Adjust the index to start at 0.
@@ -46,8 +47,18 @@ class DiffusionFitBase(ABC):
         # Mask to include only points outside the stimulation zone.
         self.r_stim = stimulation_radius
         self.rmask_stim_out = self.r > self.r_stim
-        self.r_max = np.min( [np.max(self.x_centers - self.img_center[1]),
-                              np.max(self.y_centers - self.img_center[0])] )
+        x_max = np.max(self.x_centers - self.img_center[1])
+        y_max = np.max(self.y_centers - self.img_center[0])
+        self.r_max = np.min( [x_max, y_max] )
+        self.rmask_rmax_in = self.r < self.r_max
+        self.fitting_mask = self.rmask_stim_out & self.rmask_rmax_in
+        self.n_fitted_pixels = np.prod(self.r[self.fitting_mask].shape)
+        if y_max < x_max:
+            self._line = self.y_centers - self.img_center[0]
+            self._min_dim = 'y'
+        else:
+            self._line = self.x_centers - self.img_center[1]
+            self._min_dim = 'x'
         if self._idx_stimulation > 2:
             self.background = self.images[:self._idx_stimulation-1].mean(axis=0)
             #print("background ",self.background.shape)
@@ -58,6 +69,7 @@ class DiffusionFitBase(ABC):
 
         self._idx_fitted_frames = None
         self._fitting_parameters = None
+        self._fitting_scores = None
         self._linr_res = None
         self._Ds = None
         self._t0 = None
@@ -76,8 +88,9 @@ class DiffusionFitBase(ABC):
         self._idx_fitted_frames = list()
         self._fitted_times = list()
         self._fitting_parameters = list()
-        r_sig = self.r_stim + 3 * self.pixel_width
-        x_line = self.x_centers - self.img_center[1]
+        self._fitting_scores = list()
+        r_sig = self.r_stim + 5 * self.pixel_width
+        x_line = self._line
         r_line = np.abs(x_line)
         r_noise = np.max(r_line) - 10 * self.pixel_width
         for f in range(start, end, interval):
@@ -87,20 +100,24 @@ class DiffusionFitBase(ABC):
             signal_mask = (r_line > (self.r_stim + self.pixel_width)) & (r_line < r_sig)
             signal = I_line[signal_mask].mean()
             noise_mask = r_line > r_noise
-            noise = I_line[noise_mask].std()
+            noise = np.abs(I_line[noise_mask]).mean()
             signal_to_noise = signal / noise
             if signal_to_noise < s_to_n:
                 if verbose:
                     print("stopping at frame {} time {} signal {} noise {} signal/noise {} < {}".format(f, self.times[f], signal, noise, signal_to_noise, s_to_n))
                 break
-            fit_parms = self._fit_step1(img, signal)
+            fit_parms, sse, rmse = self._fit_step1(img, signal)
+            rmse = np.sqrt(sse / self.n_pixels)
+            er = self.error_rate(img, fit_parms, rmse)
             if verbose:
-                print("frame {} time {} signal {} noise {} fit_parms {}".format(f,self.times[f], signal, noise, fit_parms))
+                print("frame {} time {} signal {} noise {} fit_parms {} RMSE {} ER {:.1f}".format(f,self.times[f], signal, noise, fit_parms, rmse, er))
             self._idx_fitted_frames.append(f)
             self._fitting_parameters.append(fit_parms)
+            self._fitting_scores.append([rmse, er])
         if len(self._fitting_parameters) == 0:
             return np.nan
         self._fitting_parameters = np.array(self._fitting_parameters)
+        self._fitting_scores = np.array(self._fitting_scores)
         linr_res, Ds, t0 = self._fit_step2(self.times[self._idx_fitted_frames],
                             self._fitting_parameters[:,-1])
         self._linr_res = linr_res
@@ -124,15 +141,24 @@ class DiffusionFitBase(ABC):
         self._n_params = 2
         return
 
+    def error_rate(self, image, theta, rmse):
+        rmask = self.fitting_mask
+        I_fit = self.model(self.r[rmask], *theta)
+        I_exp = image
+        abs_error = np.abs(I_exp[rmask] - I_fit)
+        ci_val = 3 * rmse
+        err_rate = 100 * np.prod(abs_error[abs_error > ci_val].shape) / self.n_fitted_pixels
+        return err_rate
+
     def _fit_step1(self, image, signal):
         """Non-linear fit of the images."""
-        rmask = self.rmask_stim_out
+        rmask = self.fitting_mask
         def cost(theta):
             if (theta < 0).any():
                 return np.inf
-            I_fit = self.model(self.r, *theta)
+            I_fit = self.model(self.r[rmask], *theta)
             I_exp = image
-            sse = np.sum((I_exp[rmask] - I_fit[rmask])**2)
+            sse = np.sum((I_exp[rmask] - I_fit)**2)
             return sse
         initial_guess = list()
         initial_guess.append(signal)
@@ -140,7 +166,11 @@ class DiffusionFitBase(ABC):
             initial_guess.append(100)
         initial_guess = np.array(initial_guess)
         opt_res = minimize(cost, initial_guess, method='Nelder-Mead')
-        return opt_res.x
+        # Sum of squared error from the minimized cost fucntion.
+        sse = opt_res.fun
+        # Root mean squared error.
+        rmse = np.sqrt(sse / self.n_fitted_pixels)
+        return opt_res.x, sse, rmse
 
     def _fit_step2(self, times, gamma):
         """Linear fit of gamma^2 vs. time."""
@@ -170,17 +200,16 @@ class DiffusionFitBase(ABC):
 
     def line_average(self, intensities):
         r_max = self.r_max
-        idx_low = self._idx_img_center[0]-10
-        idx_high = self._idx_img_center[0]+10
-        I_line_x = intensities[idx_low:idx_high,:].mean(axis=0)
-        #r_ex = self.x_centers - self.img_center[1]
-        #r_ex_mask = (r_ex > -r_max) & (r_ex < r_max)
-        #I_line_y = intensities[:, idx_low:idx_high].mean(axis=1)
-        #r_ey = self.y_centers - self.img_center[0]
-        #r_ey_mask = (r_ey > -r_max) & (r_ey < r_max)
-        # Assuming the images are square.
-        #I_line = 0.5*(I_line_x[r_ex_mask] + I_line_y[r_ey_mask])
-        return I_line_x
+        if self._min_dim == 'x':
+            idx_low = self._idx_img_center[0]-10
+            idx_high = self._idx_img_center[0]+10
+            I_line_x = intensities[idx_low:idx_high,:].mean(axis=0)
+            return I_line_x
+        else:
+            idx_low = self._idx_img_center[1]-10
+            idx_high = self._idx_img_center[1]+10
+            I_line_y = intensities[:,idx_low:idx_high].mean(axis=1)
+            return I_line_y
 
     @abstractmethod
     def display_image_fits(self, n_rows = 5, vmax = None, ring_roi_width=None, saveas=None):

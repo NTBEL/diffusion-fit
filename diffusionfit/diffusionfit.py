@@ -4,9 +4,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from .dfbase import DiffusionFitBase
+import seaborn as sns
 
-
-class Gaussian(DiffusionFitBase):
+class GaussianFit(DiffusionFitBase):
 
     def model(self, r, E, gamma):
         """Gaussian diffusion function.
@@ -41,23 +41,25 @@ class Gaussian(DiffusionFitBase):
         yhi = 0.5 * self.y_edges.max()
         ylow = -yhi
         extent = [xlow, xhi, ylow, yhi]
-        r_ex = self.x_centers - self.img_center[1]
+        r_ex = self._line
         for i in range(0, ntimes, interval):
             if row >= n_rows: break
             time = t_v[i]
             #tcol = time_col[t_idx]
             E = self._fitting_parameters[i][0]
             gamma = self._fitting_parameters[i][1]
+            rmse = self._fitting_scores[i][0]
+            er = self._fitting_scores[i][1]
             dF_sim = self.model(self.r, *self._fitting_parameters[i])
             image = self.images[self._idx_fitted_frames[i]] - self.background
             axes[row, 0].imshow(image, cmap='gray', vmin=0, vmax=1.5*vmax, extent=extent)
             axes[row, 0].set_xlabel(r'x ($\mu$m)', fontsize=14)
             axes[row, 0].set_ylabel(r'y ($\mu$m)', fontsize=14)
-            axes[row, 0].set_title("Exp. Image - Time: {:.2f} s".format(time), fontdict={'fontsize':10}, pad=10)
+            axes[row, 0].set_title("Exp. Image\nTime: {:.2f} s".format(time), fontdict={'fontsize':10}, pad=10)
             axes[row, 1].imshow(dF_sim, cmap='gray', vmin=0, vmax=vmax, extent=extent)
             axes[row, 1].set_xlabel(r'x ($\mu$m)', fontsize=14)
             axes[row, 1].set_ylabel(r'y ($\mu$m)', fontsize=14)
-            axes[row, 1].set_title("2D Gaussian Fit - E: {:.1e} | $\gamma$: {:.1e}".format(E, gamma), fontdict={'fontsize':10}, pad=10)
+            axes[row, 1].set_title("2D Gaussian Fit\nE: {:.1e} | $\gamma$: {:.1e} | RMSE: {:.1f} | ER: {:.1f}".format(E, gamma, rmse, er), fontdict={'fontsize':10}, pad=10)
             I_line_roi_exp = self.line_average(image)
             r_centers, I_ring_roi_exp, std_ring_roi_exp = self.radial_average(image)
             I_line_roi_fit = self.line_average(dF_sim)

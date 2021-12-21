@@ -1,1 +1,1 @@
-from .diffusionfit import Gaussian
+from .diffusionfit import GaussianFit
