@@ -20,7 +20,7 @@ See the [CHANGELOG](CHANGELOG.md) for additional details.
  1. [Install](#install)
      1. [Dependencies](#dependencies)
      2. [Manual install](#manual-install)
-     3. [Recomended additional software](#recomended-additional-software)
+     3. [Recommended additional software](#recommended-additional-software)
  2. [License](#license)
  3. [Change Log](#change-log)
  4. [Documentation and Usage](#documentation-and-usage)

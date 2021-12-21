@@ -4,7 +4,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from .dfbase import DiffusionFitBase
-
+import seaborn as sns
 
 class GaussianFit(DiffusionFitBase):
 
