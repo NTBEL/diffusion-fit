@@ -52,11 +52,11 @@ class GaussianFit(DiffusionFitBase):
             er = self._fitting_scores[i][1]
             dF_sim = self.model(self.r, *self._fitting_parameters[i])
             image = self.images[self._idx_fitted_frames[i]] - self.background
-            axes[row, 0].imshow(image, cmap='gray', vmin=0, vmax=1.5*vmax, extent=extent)
+            axes[row, 0].imshow(image, cmap='viridis', vmin=0, vmax=1.5*vmax, extent=extent)
             axes[row, 0].set_xlabel(r'x ($\mu$m)', fontsize=14)
             axes[row, 0].set_ylabel(r'y ($\mu$m)', fontsize=14)
             axes[row, 0].set_title("Exp. Image\nTime: {:.2f} s".format(time), fontdict={'fontsize':10}, pad=10)
-            axes[row, 1].imshow(dF_sim, cmap='gray', vmin=0, vmax=vmax, extent=extent)
+            axes[row, 1].imshow(dF_sim, cmap='viridis', vmin=0, vmax=vmax, extent=extent)
             axes[row, 1].set_xlabel(r'x ($\mu$m)', fontsize=14)
             axes[row, 1].set_ylabel(r'y ($\mu$m)', fontsize=14)
             axes[row, 1].set_title("2D Gaussian Fit\nE: {:.1e} | $\gamma$: {:.1e} | RMSE: {:.1f} | ER: {:.1f}".format(E, gamma, rmse, er), fontdict={'fontsize':10}, pad=10)
