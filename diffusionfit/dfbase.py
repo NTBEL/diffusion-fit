@@ -108,12 +108,13 @@ class DiffusionFitBase(ABC):
                 break
             fit_parms, sse, rmse = self._fit_step1(img, signal)
             rmse = np.sqrt(sse / self.n_pixels)
-            er = self.error_rate(img, fit_parms, rmse)
+            #er = self.error_rate(img, fit_parms, rmse)
+            rsse = self.rsse(img, fit_parms)
             if verbose:
-                print("frame {} time {} signal {} noise {} fit_parms {} RMSE {} ER {:.1f}".format(f,self.times[f], signal, noise, fit_parms, rmse, er))
+                print("frame {} time {} signal {} noise {} fit_parms {} RMSE {} RSSE {:.1f}".format(f,self.times[f], signal, noise, fit_parms, rmse, rsse))
             self._idx_fitted_frames.append(f)
             self._fitting_parameters.append(fit_parms)
-            self._fitting_scores.append([rmse, er])
+            self._fitting_scores.append([rmse, rsse])
         if len(self._fitting_parameters) == 0:
             return np.nan
         self._fitting_parameters = np.array(self._fitting_parameters)
@@ -149,6 +150,13 @@ class DiffusionFitBase(ABC):
         ci_val = 3 * rmse
         err_rate = 100 * np.prod(abs_error[abs_error > ci_val].shape) / self.n_fitted_pixels
         return err_rate
+
+    def rsse(self, image, theta):
+        rmask = self.fitting_mask
+        I_fit = self.model(self.r[rmask], *theta)
+        I_exp = image
+        sse = np.std((I_exp[rmask] - I_fit)**2)
+        return np.sqrt(sse)
 
     def _fit_step1(self, image, signal):
         """Non-linear fit of the images."""
@@ -210,6 +218,10 @@ class DiffusionFitBase(ABC):
             idx_high = self._idx_img_center[1]+10
             I_line_y = intensities[:,idx_low:idx_high].mean(axis=1)
             return I_line_y
+
+    @property
+    def time_resolved_diffusion(self):
+        return None
 
     @abstractmethod
     def display_image_fits(self, n_rows = 5, vmax = None, ring_roi_width=None, saveas=None):

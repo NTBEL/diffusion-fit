@@ -49,7 +49,7 @@ class GaussianFit(DiffusionFitBase):
             E = self._fitting_parameters[i][0]
             gamma = self._fitting_parameters[i][1]
             rmse = self._fitting_scores[i][0]
-            er = self._fitting_scores[i][1]
+            rsse = self._fitting_scores[i][1]
             dF_sim = self.model(self.r, *self._fitting_parameters[i])
             image = self.images[self._idx_fitted_frames[i]] - self.background
             axes[row, 0].imshow(image, cmap='viridis', vmin=0, vmax=1.5*vmax, extent=extent)
@@ -59,7 +59,7 @@ class GaussianFit(DiffusionFitBase):
             axes[row, 1].imshow(dF_sim, cmap='viridis', vmin=0, vmax=vmax, extent=extent)
             axes[row, 1].set_xlabel(r'x ($\mu$m)', fontsize=14)
             axes[row, 1].set_ylabel(r'y ($\mu$m)', fontsize=14)
-            axes[row, 1].set_title("2D Gaussian Fit\nE: {:.1e} | $\gamma$: {:.1e} | RMSE: {:.1f} | ER: {:.1f}".format(E, gamma, rmse, er), fontdict={'fontsize':10}, pad=10)
+            axes[row, 1].set_title("2D Gaussian Fit\nE: {:.1e} | $\gamma$: {:.1e} | RMSE: {:.1f} | RSSE: {:.1f}".format(E, gamma, rmse, rsse), fontdict={'fontsize':10}, pad=10)
             I_line_roi_exp = self.line_average(image)
             r_centers, I_ring_roi_exp, std_ring_roi_exp = self.radial_average(image)
             I_line_roi_fit = self.line_average(dF_sim)
