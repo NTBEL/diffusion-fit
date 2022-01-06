@@ -62,5 +62,6 @@ for file in tqdm(files, desc='Samples: '):
     fn_step2 = file_prefix + "_step2.png"
     gfit.display_linear_fit(saveas=os.path.join(out_path, fn_step2))
     plt.close()
+    gfit.export_to_csv(os.path.join(out_path, file_prefix))
 Dstar_values_df = pd.DataFrame(Dstar_values)
 print(Dstar_values_df)

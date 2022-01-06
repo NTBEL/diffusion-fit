@@ -248,3 +248,16 @@ class DiffusionFitBase(ABC):
         sns.despine()
         if saveas is not None:
             plt.savefig(saveas)
+
+    @property
+    @abstractmethod
+    def fitting_parameters(self):
+        pass
+
+    def export_to_csv(self, prefix):
+        fp_df = self.fitting_parameters
+        fp_df.to_csv(prefix+'_step_1_fits.csv', index=False)
+        fp_df_step2 = fp_df[['Time','Gamma^2']]
+        lin_fit = self.linear_model(fp_df['Time'].values, self._Ds * 1e8, self._t0)
+        fp_df_step2['Linear-Fit'] = lin_fit.tolist()
+        fp_df_step2.to_csv(prefix+'_step_2_fits.csv', index=False)

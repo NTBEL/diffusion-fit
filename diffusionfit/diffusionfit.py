@@ -2,6 +2,7 @@
 """
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from .dfbase import DiffusionFitBase
 import seaborn as sns
@@ -104,3 +105,17 @@ class GaussianFit(DiffusionFitBase):
         if saveas is not None:
             plt.savefig(saveas)
         return
+
+    @property
+    def fitting_parameters(self):
+        t_v = self.times[self._idx_fitted_frames]
+        E_vals = self._fitting_parameters[:, 0]
+        gamma_vals = self._fitting_parameters[:, -1]
+        RMSE = self._fitting_scores[:, 0]
+        RSSE = self._fitting_scores[:, 1]
+        fp_vals = list()
+        for i in range(len(t_v)):
+            fp_vals.append({"Time":t_v[i], "E":E_vals[i], "Gamma":gamma_vals[i],
+                            "Gamma^2":gamma_vals[i]**2, "RMSE":RMSE[i],
+                            "RSSE":RSSE[i]})
+        return pd.DataFrame(fp_vals)
