@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="diffusionfit",
-    version="0.2.0",
+    version="0.3.0",
     python_requires='>=3.9',
     install_requires=['numpy', 'scipy', 'scikit-image', 'matplotlib', 'seaborn', 'pandas'],
     author="Blake A. Wilson",
