@@ -54,13 +54,23 @@ for file in tqdm(files, desc='Samples: '):
         D = None
         Dstar_values.append({'sample:':sample_name, 'D*(x10^-7 cm^2/s)':D})
         continue
-    Dstar_values.append({'sample:':sample_name, 'D*(x10^-7 cm^2/s)':D*1e7})
+    rmse_avg = gfit.step1_rmse.mean()
+    rmse_std = gfit.step1_rmse.std()
+    rsquared = gfit.step2_rsquared
+    effective_time = gfit.effective_time
+    Dstar_values.append({'sample:':sample_name, 'D*(x10^-7 cm^2/s)':D*1e7,
+                         'RMSE-mean':rmse_avg, 'RMSE-std':rmse_std,
+                         'R-squared':rsquared, 'EffectiveTime':effective_time})
     fn_step1 = file_prefix + "_step1.png"
     gfit.display_image_fits(saveas=os.path.join(out_path, fn_step1))
     plt.close()
 
     fn_step2 = file_prefix + "_step2.png"
     gfit.display_linear_fit(saveas=os.path.join(out_path, fn_step2))
+    plt.close()
+
+    fn_step2_time_resolved = file_prefix + "_step2_TR-D.png"
+    gfit.display_time_resolved_dc(saveas=os.path.join(out_path, fn_step2_time_resolved))
     plt.close()
     gfit.export_to_csv(os.path.join(out_path, file_prefix))
 Dstar_values_df = pd.DataFrame(Dstar_values)

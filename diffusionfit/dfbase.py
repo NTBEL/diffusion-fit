@@ -97,12 +97,22 @@ class DiffusionFitBase(ABC):
             img = self.images[f] - self.background
             I_line = self.line_average(img)
             # Estimate the signal and noise
-            signal_mask = (r_line > (self.r_stim + self.pixel_width)) & (r_line < r_sig)
-            signal = I_line[signal_mask].mean()
-            noise_mask = r_line > r_noise
-            noise = np.abs(I_line[noise_mask]).mean()
-            signal_to_noise = signal / noise
-            if signal_to_noise < s_to_n:
+            #signal_mask = (r_line > (self.r_stim + self.pixel_width)) & (r_line < r_sig)
+            #signal = I_line[signal_mask].mean()
+            #noise_mask = r_line > r_noise
+            #noise = np.abs(I_line[noise_mask]).mean()
+            #tail_mean = I_line[noise_mask].mean()
+            #tail_std = I_line[noise_mask].std()
+            signal_mask = (self.r > (self.r_stim + self.pixel_width)) & (self.r < r_sig)
+            signal = img[signal_mask].mean()
+            noise_mask = (self.r > r_noise) #& (self.r < np.max(r_line))
+            #noise = np.abs(img[noise_mask]).mean()
+            #signal_to_noise = signal / noise
+            tail_mean = img[noise_mask].mean()
+            tail_std = img[noise_mask].std()
+            noise = tail_mean + tail_std
+            #if signal_to_noise < s_to_n:
+            if signal <= (tail_mean + s_to_n*tail_std):
                 if verbose:
                     print("stopping at frame {} time {} signal {} noise {} signal/noise {} < {}".format(f, self.times[f], signal, noise, signal_to_noise, s_to_n))
                 break
@@ -220,8 +230,60 @@ class DiffusionFitBase(ABC):
             return I_line_y
 
     @property
+    def fit_times(self):
+        return self.times[self._idx_fitted_frames]
+
+    @property
+    def step1_rmse(self):
+        return self._fitting_scores[:,0]
+
+    @property
+    def step2_rsquared(self):
+        return self._linr_res.rvalue**2
+
+    @property
+    def effective_time(self):
+        return np.max(self.fit_times)
+
+    @staticmethod
+    def _leg_filter(times, gamma2):
+        # Map times to [-1,1] for Legendre fitting
+        times_l = (times - times[-1]*0.5)/(times[-1]*0.5)
+        # Maximum polynomial degree is 12
+        deg_max = 12
+        # Start with degree 1 (linear)
+        deg = 1
+        lcoeff = np.polynomial.legendre.legfit(times_l, gamma2, deg=deg)
+        lfit = np.polynomial.legendre.legval(times_l, lcoeff)
+        sse_1m = ((gamma2 - lfit)**2).max()
+        sse = np.sum((gamma2 - lfit)**2) / sse_1m
+        aic = 2 * deg + 2 * sse
+        #print("Trying deg={} with AIC={:.2f} and SSE={}".format(deg, aic,sse))
+        for d in range(2, deg_max+1):
+            lcoeff_d = np.polynomial.legendre.legfit(times_l, gamma2, deg=d)
+            lfit_d = np.polynomial.legendre.legval(times_l, lcoeff_d)
+            sse_d = np.sum((gamma2 - lfit_d)**2) / sse_1m
+            aic_d = 2 * d + 2 * sse_d
+         #print("Trying deg={} with AIC={:.2f} and SSE={}".format(d, aic_d,sse_d))
+            if aic_d < aic:
+                aic = aic_d
+                lfit = lfit_d.copy()
+                deg = d
+                sse = sse_d
+            else:
+                break
+        #print("Fitted with deg={} with AIC={:.2f} and SSE={}".format(deg, aic,sse))
+        return lfit
+
+    @property
     def time_resolved_diffusion(self):
-        return None
+
+        t_v = self.fit_times
+        gamma_vals = self._fitting_parameters[:,-1]
+        lfit = self._leg_filter(t_v, gamma_vals**2)
+        deriv = np.gradient(lfit, t_v)
+        tr_dc = 0.25 * deriv * 1e-8 # 1e-8 converts from um^2/s to cm^2/s
+        return t_v, tr_dc
 
     @abstractmethod
     def display_image_fits(self, n_rows = 5, vmax = None, ring_roi_width=None, saveas=None):
@@ -244,6 +306,23 @@ class DiffusionFitBase(ABC):
         plt.xlabel('Time (s)')
         plt.legend(loc=0, frameon=False)
         plt.title("Step 2 - linear fit of $\gamma^2$ vs. $t$ \n $R^2$={:.3f} | D={:.1f} x$10^{{-7}}$ cm$^2$/s | $t_0$={:.2f} s".format(R2_fit, Ds_fit*1e7, t0_fit), pad=20)
+        plt.tight_layout()
+        sns.despine()
+        if saveas is not None:
+            plt.savefig(saveas)
+
+    def display_time_resolved_dc(self, saveas=None):
+
+        t_v, d_c = self.time_resolved_diffusion
+        d_c *= 1e7 # x10-7 cm^2/s
+        print("d_c: ",np.mean(d_c))
+        plt.plot(t_v, d_c, marker='o', linestyle="-", label=None,
+                 color='grey')
+        plt.ylabel(r'$D(t)$ (x$10^{{-7}}$ cm$^2$/s)')
+        plt.xlabel('Time (s)')
+        plt.ylim((1, 70))
+        #plt.legend(loc=0, frameon=False)
+        plt.title("Time-Resolved Diffusion Coefficient", pad=20)
         plt.tight_layout()
         sns.despine()
         if saveas is not None:
