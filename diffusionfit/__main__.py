@@ -29,8 +29,8 @@ parser.add_argument('stim_frame', metavar='stim_frame', type=int,
                     help='Set the frame where the stimulation takes place.')
 parser.add_argument('d_stim', metavar='d_stim', type=float, default=0.,
                     help='Set the diameter of the stimulation zone in microns.')
-parser.add_argument('ston', metavar='signal-to-noise', type=int, default=5,
-                    help='Set the singal/noise threshold for terminating the fitting analysis.')
+parser.add_argument('--peak-to-tail', nargs='?', metavar='peak_to_tail', type=int, default=3,
+                    help='Set the peak/tail threshold during step 1 fitting for terminating the fitting analysis.')
 args = parser.parse_args()
 # Get the current directory from which to read files.
 current_path = os.path.abspath('./')
@@ -49,7 +49,7 @@ for file in tqdm(files, desc='Samples: '):
                        timestep=args.timestep, pixel_width=args.pixel_size,
                        stimulation_radius=args.d_stim/2)
 
-    D = gfit.fit(verbose=False, s_to_n=args.ston)
+    D = gfit.fit(verbose=False, step1_threshold=args.peak_to_tail)
     if np.isnan(D):
         D = None
         Dstar_values.append({'sample:':sample_name, 'D*(x10^-7 cm^2/s)':D})

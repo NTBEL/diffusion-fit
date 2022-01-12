@@ -79,7 +79,7 @@ class DiffusionFitBase(ABC):
 
 
 
-    def fit(self, start=None, end=None, interval=1, verbose=False, s_to_n=3):
+    def fit(self, start=None, end=None, interval=1, verbose=False, step1_threshold=3):
         if start is None:
             start = self._idx_zero_time
         if end is None:
@@ -112,16 +112,16 @@ class DiffusionFitBase(ABC):
             tail_std = img[noise_mask].std()
             noise = tail_mean + tail_std
             #if signal_to_noise < s_to_n:
-            if signal <= (tail_mean + s_to_n*tail_std):
+            if signal <= (tail_mean + step1_threshold*tail_std):
                 if verbose:
-                    print("stopping at frame {} time {} signal {} noise {} signal/noise {} < {}".format(f, self.times[f], signal, noise, signal_to_noise, s_to_n))
+                    print("stopping at frame {} time {} peak-signal {} <= tail-signal {} + {}x tail-std {}".format(f, self.times[f], signal, tail_mean, step1_threshold, tail_std))
                 break
             fit_parms, sse, rmse = self._fit_step1(img, signal)
             rmse = np.sqrt(sse / self.n_pixels)
             #er = self.error_rate(img, fit_parms, rmse)
             rsse = self.rsse(img, fit_parms)
             if verbose:
-                print("frame {} time {} signal {} noise {} fit_parms {} RMSE {} RSSE {:.1f}".format(f,self.times[f], signal, noise, fit_parms, rmse, rsse))
+                print("frame {} time {} signal {} tail-mean {} tail-std {} fit_parms {} RMSE {} RSSE {:.1f}".format(f,self.times[f], signal, tail_mean, tail_std, fit_parms, rmse, rsse))
             self._idx_fitted_frames.append(f)
             self._fitting_parameters.append(fit_parms)
             self._fitting_scores.append([rmse, rsse])
@@ -129,6 +129,8 @@ class DiffusionFitBase(ABC):
             return np.nan
         self._fitting_parameters = np.array(self._fitting_parameters)
         self._fitting_scores = np.array(self._fitting_scores)
+        #if len(self.times[self._idx_fitted_frames]) < 10:
+        #    return np.nan
         linr_res, Ds, t0 = self._fit_step2(self.times[self._idx_fitted_frames],
                             self._fitting_parameters[:,-1])
         self._linr_res = linr_res
@@ -305,7 +307,7 @@ class DiffusionFitBase(ABC):
         plt.ylabel(r'$\gamma^2$')
         plt.xlabel('Time (s)')
         plt.legend(loc=0, frameon=False)
-        plt.title("Step 2 - linear fit of $\gamma^2$ vs. $t$ \n $R^2$={:.3f} | D={:.1f} x$10^{{-7}}$ cm$^2$/s | $t_0$={:.2f} s".format(R2_fit, Ds_fit*1e7, t0_fit), pad=20)
+        plt.title("Step 2 - linear fit of $\gamma^2$ vs. $t$ \n $R^2$={:.3f} | D={:.1f} x$10^{{-7}}$ cm$^2$/s | $t_0$={:.2f} s \n $N_t$={} | Effective Time={:.1f} s".format(R2_fit, Ds_fit*1e7, t0_fit, len(self.fit_times), self.effective_time), pad=20)
         plt.tight_layout()
         sns.despine()
         if saveas is not None:
