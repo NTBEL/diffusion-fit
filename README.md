@@ -47,6 +47,7 @@ Note that `diffusion-fit` has the following core dependencies:
    * [pandas](https://pandas.pydata.org/)
    * [Matplotlib](https://matplotlib.org/)
    * [seaborn](https://seaborn.pydata.org/)
+   * [Numba](https://numba.pydata.org/)
 
 ### Manual install
 First, download the repository. Then from the `diffusion-fit` folder/directory run
@@ -88,8 +89,8 @@ from diffusonfit import GaussianFit
 ```
 which defines an object that can be used fit the 2D diffusion distribution with
 two-step fitting procedure, assuming the fluorescence from the diffusion cloud
-has a Gaussian distribution whose width changes over time. The procedure is
-adapted from the two-step fitting procedure described described in Nicholson and Tao 1993 [doi: 10.1016/S0006-3495(93)81324-9](https://doi.org/10.1016/S0006-3495(93)81324-9).
+has an isotropic Gaussian distribution that expands over time. The procedure is
+adapted from the two-step fitting procedures described described in Nicholson and Tao 1993 [doi: 10.1016/S0006-3495(93)81324-9](https://doi.org/10.1016/S0006-3495(93)81324-9) and Hrabe and Hrabetova 2019 [doi: 10.1016/j.bpj.2019.08.031](https://doi.org/10.1016/j.bpj.2019.08.031).
 
 ### Examples
 ```python
