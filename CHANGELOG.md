@@ -14,6 +14,28 @@ N/A
 
 ### Fixed
 
+## [0.3.0] - 2021-12-20
+
+### Added
+- Function to export fitting results to csv file (export_to_csv) in DiffusionFitBase.
+- Abstract property function (fitting_parameters) to compile the fitting parameters from step 1 fitting into a DataFrame. This is used by export_to_csv function.
+- __main__.py calls the export_to_csv function to save the fitting data to csv files.
+- Time-resolved diffusion coefficient estimation (time_resolved_diffusion property function) and display function (display_time_resolved_dc). The plot is also part of the output files now when running from the command line (__main__.py).
+- Added additional property functions to DiffusionFitBase:  fit_times, step1_rmse, step2_rsquared, effective_time.
+- The command line run script (__main__.py) prints the Effective Time as part of Dstar_values DataFrame.
+- New models module defining diffusion model functions to use when doing the fitting. Functions from this module are used by the fitting classes.
+- New dependency on Numba
+- New fitting class PointClarkFit for fitting fluorescent signal of receptor-based peptide sensors during peptide diffusion. 
+
+
+
+### Changed
+- Changed the cmap used for step 1 experiment and 2D fit images from gray to viridis
+- Replaced the ER goodness of fit metric with RSSE (Root Standard deviation of the Squared Error)
+- Changed the way the thresholding is done after step 1 fitting. Now it terminates when mean(peak-region) <= mean(tail-region) + peak-to-tail * std(tail-region) and uses radial selections from the image instead of computing values from the Line-ROI.
+- The required argument signal_to_noise in __main__.py arguments was changed to optional keyword argument --peak-to-tail with default value of 3. This is used in the new step 1 thresholding.
+
+
 ## [0.2.0] - 2021-12-20
 
 ### Added
