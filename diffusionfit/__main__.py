@@ -29,8 +29,17 @@ parser.add_argument('stim_frame', metavar='stim_frame', type=int,
                     help='Set the frame where the stimulation takes place.')
 parser.add_argument('d_stim', metavar='d_stim', type=float, default=0.,
                     help='Set the diameter of the stimulation zone in microns.')
-parser.add_argument('--peak-to-tail', nargs='?', metavar='peak_to_tail', type=int, default=3,
+parser.add_argument('-peak-to-tail', nargs='?', metavar='peak_to_tail', type=int, default=3,
                     help='Set the peak/tail threshold during step 1 fitting for terminating the fitting analysis.')
+parser.add_argument('-center', nargs='?', metavar='center', type=str, default='image',
+                    help='Set how the center of the diffusion cloud is determined. Options are: image - (default), use the center pixel location of the image. intensity - centroid of intensity after stimulation. y,x - a specific pixel location.')
+parser.add_argument('--ignore-threshold', dest='apply_threshold',
+                    action='store_false',
+                    help='Ignore the thresholding for termination after step 1 fitting.')
+parser.set_defaults(apply_threshold=True)
+parser.add_argument('-end-frame', nargs='?', metavar='end_frame', type=int,
+                    default=None, const=None,
+                    help='Specify the maximum frame to include in the analysis. Should larger than stim_frame.')
 args = parser.parse_args()
 # Get the current directory from which to read files.
 current_path = os.path.abspath('./')
@@ -42,14 +51,28 @@ if not os.path.isdir(out_path):
 files = glob.glob(current_path+'/*.tif')
 
 Dstar_values = list()
+# Clean up the center argument in case of non-default
+center = ''.join(args.center.split())
+# If a pixel positon is given convert to a list
+if ',' in center:
+    center_split = center.split(',')
+    print(center_split)
+    center = list([int(center_split[0]), int(center_split[1])])
+end_frame = args.end_frame
+if end_frame is not None:
+    if end_frame < args.stim_frame:
+        end_frame = None
 for file in tqdm(files, desc='Samples: '):
     file_prefix = os.path.splitext(os.path.split(file)[1])[0]
     sample_name = os.path.splitext(os.path.split(os.path.basename(os.path.normpath(file)))[1])[0]
     gfit = GaussianFit(file, stimulation_frame=args.stim_frame,
                        timestep=args.timestep, pixel_width=args.pixel_size,
-                       stimulation_radius=args.d_stim/2)
+                       stimulation_radius=args.d_stim/2,
+                       center=center)
 
-    D = gfit.fit(verbose=False, step1_threshold=args.peak_to_tail)
+    D = gfit.fit(end=end_frame, verbose=False,
+                 apply_step1_threshold=args.apply_threshold,
+                 step1_threshold=args.peak_to_tail)
     if np.isnan(D):
         D = None
         Dstar_values.append({'sample:':sample_name, 'D*(x10^-7 cm^2/s)':D})
@@ -62,7 +85,10 @@ for file in tqdm(files, desc='Samples: '):
                          'RMSE-mean':rmse_avg, 'RMSE-std':rmse_std,
                          'R-squared':rsquared, 'EffectiveTime':effective_time})
     fn_step1 = file_prefix + "_step1.png"
+
     gfit.display_image_fits(saveas=os.path.join(out_path, fn_step1))
+    #tp = [0., 6., 12., 18., 24., 30.]
+    #gfit.display_image_fits_at_times(tp, saveas=os.path.join(out_path, fn_step1))
     plt.close()
 
     fn_step2 = file_prefix + "_step2.png"
