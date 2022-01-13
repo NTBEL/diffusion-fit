@@ -69,8 +69,7 @@ Command line runs will display a progress bar that tracks the analysis of the se
 
 # License
 
-This project is currently a private repository for internal NTBEL
-organization use only.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE.md) file for details
 
 ------
 
