@@ -8,14 +8,16 @@ from scipy.optimize import minimize
 from scipy.stats import linregress
 import skimage
 from skimage import io as skio
+import skimage.measure
 import matplotlib.pyplot as plt
 import seaborn as sns
+from . import measure
 
 class DiffusionFitBase(ABC):
     """Abstract base class for diffusion fitting."""
 
     def __init__(self, img_file, stimulation_frame=1, timestep=1,
-                 pixel_width=1, stimulation_radius=0):
+                 pixel_width=1, stimulation_radius=0, center='image'):
         self._img_file = img_file
         self.images = skio.imread(img_file)
         self.n_frames = len(self.images)
@@ -30,6 +32,19 @@ class DiffusionFitBase(ABC):
         self.pixel_width = pixel_width
         self._idx_img_center = (0.5 * np.array(self.images[0].shape)).astype(np.int)
         self.img_center = np.array(self._idx_img_center) * pixel_width - 0.5*pixel_width
+        if center == 'image':
+            self._idx_diffusion_center = self._idx_img_center
+            self._diffusion_center = self.img_center
+        elif center == 'intensity':
+            img = self.images[self._idx_stimulation+1]
+            moment  = skimage.measure.moments(img, order=1)
+            centroid = np.array([moment[1, 0] / moment[0, 0], moment[0, 1] / moment[0, 0]])
+            self._idx_diffusion_center = centroid.astype(int)
+            self._diffusion_center = centroid * pixel_width - 0.5*pixel_width
+        else:
+            self._idx_diffusion_center = center
+            self._diffusion_center = np.array(center) * pixel_width - 0.5*pixel_width
+        #print(self._idx_diffusion_center, self._diffusion_center)
         self.times = np.array(list(range(0, self.n_frames))) * timestep - (stimulation_frame) * timestep
         self.x_edges = np.linspace(0, pixel_width * self.images[0].shape[1],
                                    self.images[0].shape[1] + 1, endpoint=True)
@@ -43,21 +58,22 @@ class DiffusionFitBase(ABC):
         self.xv = xv
 
         # Get the distance of each pixel from the image center
-        self.r = np.sqrt((xv - self.img_center[1])**2 + (yv - self.img_center[0])**2)
+        self.r = np.sqrt((xv - self._diffusion_center[1])**2 + (yv - self._diffusion_center[0])**2)
         # Mask to include only points outside the stimulation zone.
         self.r_stim = stimulation_radius
         self.rmask_stim_out = self.r > self.r_stim
-        x_max = np.max(self.x_centers - self.img_center[1])
-        y_max = np.max(self.y_centers - self.img_center[0])
+        x_max = np.max(self.x_centers - self._diffusion_center[1])
+        y_max = np.max(self.y_centers - self._diffusion_center[0])
         self.r_max = np.min( [x_max, y_max] )
         self.rmask_rmax_in = self.r < self.r_max
-        self.fitting_mask = self.rmask_stim_out & self.rmask_rmax_in
+        #xmask = (xv - self._diffusion_center[1]) < -10
+        self.fitting_mask = (self.rmask_stim_out & self.rmask_rmax_in) #& xmask
         self.n_fitted_pixels = np.prod(self.r[self.fitting_mask].shape)
         if y_max < x_max:
-            self._line = self.y_centers - self.img_center[0]
+            self._line = self.y_centers - self._diffusion_center[0]
             self._min_dim = 'y'
         else:
-            self._line = self.x_centers - self.img_center[1]
+            self._line = self.x_centers - self._diffusion_center[1]
             self._min_dim = 'x'
         if self._idx_stimulation > 2:
             self.background = self.images[:self._idx_stimulation-1].mean(axis=0)
@@ -79,7 +95,8 @@ class DiffusionFitBase(ABC):
 
 
 
-    def fit(self, start=None, end=None, interval=1, verbose=False, step1_threshold=3):
+    def fit(self, start=None, end=None, interval=1, verbose=False,
+            apply_step1_threshold=True, step1_threshold=3):
         if start is None:
             start = self._idx_zero_time
         if end is None:
@@ -112,12 +129,12 @@ class DiffusionFitBase(ABC):
             tail_std = img[noise_mask].std()
             noise = tail_mean + tail_std
             #if signal_to_noise < s_to_n:
-            if signal <= (tail_mean + step1_threshold*tail_std):
+            if apply_step1_threshold and (signal <= (tail_mean + step1_threshold*tail_std)):
                 if verbose:
                     print("stopping at frame {} time {} peak-signal {} <= tail-signal {} + {}x tail-std {}".format(f, self.times[f], signal, tail_mean, step1_threshold, tail_std))
                 break
             fit_parms, sse, rmse = self._fit_step1(img, signal)
-            rmse = np.sqrt(sse / self.n_pixels)
+            #rmse = np.sqrt(sse / self.n_pixels)
             #er = self.error_rate(img, fit_parms, rmse)
             rsse = self.rsse(img, fit_parms)
             if verbose:
@@ -177,8 +194,8 @@ class DiffusionFitBase(ABC):
             if (theta < 0).any():
                 return np.inf
             I_fit = self.model(self.r[rmask], *theta)
-            I_exp = image
-            sse = np.sum((I_exp[rmask] - I_fit)**2)
+            I_exp = image[rmask]
+            sse = measure.ss_error(I_exp, I_fit)
             return sse
         initial_guess = list()
         initial_guess.append(signal)
@@ -189,7 +206,7 @@ class DiffusionFitBase(ABC):
         # Sum of squared error from the minimized cost fucntion.
         sse = opt_res.fun
         # Root mean squared error.
-        rmse = np.sqrt(sse / self.n_fitted_pixels)
+        rmse = measure.sse_to_rmse(sse, self.n_fitted_pixels)
         return opt_res.x, sse, rmse
 
     def _fit_step2(self, times, gamma):
@@ -221,13 +238,13 @@ class DiffusionFitBase(ABC):
     def line_average(self, intensities):
         r_max = self.r_max
         if self._min_dim == 'x':
-            idx_low = self._idx_img_center[0]-10
-            idx_high = self._idx_img_center[0]+10
+            idx_low = self._idx_diffusion_center[0]-10
+            idx_high = self._idx_diffusion_center[0]+10
             I_line_x = intensities[idx_low:idx_high,:].mean(axis=0)
             return I_line_x
         else:
-            idx_low = self._idx_img_center[1]-10
-            idx_high = self._idx_img_center[1]+10
+            idx_low = self._idx_diffusion_center[1]-10
+            idx_high = self._idx_diffusion_center[1]+10
             I_line_y = intensities[:,idx_low:idx_high].mean(axis=1)
             return I_line_y
 
@@ -258,14 +275,14 @@ class DiffusionFitBase(ABC):
         lcoeff = np.polynomial.legendre.legfit(times_l, gamma2, deg=deg)
         lfit = np.polynomial.legendre.legval(times_l, lcoeff)
         sse_1m = ((gamma2 - lfit)**2).max()
-        sse = np.sum((gamma2 - lfit)**2) / sse_1m
-        aic = 2 * deg + 2 * sse
+        sse = measure.ss_error(gamma2, lfit) / sse_1m
+        aic = measure.akaike_ic(-sse, deg)
         #print("Trying deg={} with AIC={:.2f} and SSE={}".format(deg, aic,sse))
         for d in range(2, deg_max+1):
             lcoeff_d = np.polynomial.legendre.legfit(times_l, gamma2, deg=d)
             lfit_d = np.polynomial.legendre.legval(times_l, lcoeff_d)
-            sse_d = np.sum((gamma2 - lfit_d)**2) / sse_1m
-            aic_d = 2 * d + 2 * sse_d
+            sse_d = measure.ss_error(gamma2, lfit_d) / sse_1m
+            aic_d = measure.akaike_ic(-sse_d, d)
          #print("Trying deg={} with AIC={:.2f} and SSE={}".format(d, aic_d,sse_d))
             if aic_d < aic:
                 aic = aic_d
