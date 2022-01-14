@@ -11,6 +11,7 @@ from skimage import io as skio
 import skimage.measure
 import matplotlib.pyplot as plt
 import seaborn as sns
+from tifffile import imwrite as tiffwrite
 from . import measure
 
 class DiffusionFitBase(ABC):
@@ -359,3 +360,15 @@ class DiffusionFitBase(ABC):
         lin_fit = self.linear_model(fp_df['Time'].values, self._Ds * 1e8, self._t0)
         fp_df_step2['Linear-Fit'] = lin_fit.tolist()
         fp_df_step2.to_csv(prefix+'_step_2_fits.csv', index=False)
+
+    def write_step1_fits_to_tiff(self, saveas='step1_fits.tif'):
+        trajectory = list()
+        fps = 1/self.timestep
+        dx = self.pixel_width
+        for fit_parm in self._fitting_parameters:
+            dF_sim = self.model(self.r, *fit_parm)
+            trajectory.append(dF_sim.astype(np.float32)))
+        tiffwrite(saveas, np.array(trajectory), imagej=True,
+                  metadata={'spacing' : dx, 'unit': 'micron',
+                            'axes': 'TYX', 'fps':fps})
+        return
