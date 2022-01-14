@@ -40,6 +40,12 @@ parser.set_defaults(apply_threshold=True)
 parser.add_argument('-end-frame', nargs='?', metavar='end_frame', type=int,
                     default=None, const=None,
                     help='Specify the maximum frame to include in the analysis. Should larger than stim_frame.')
+parser.add_argument('--write-tif', dest='write_tif', action='store_true',
+                    help='Write out an ImageJ compatible tiff image file of the step 1 fits.')
+parser.set_defaults(write_tif=False)
+parser.add_argument('--time-resolved', dest='time_resolved', action='store_true',
+                    help='Compute estimate of time-resolved diffusion coefficient and output corresponding plot.')
+parser.set_defaults(time_resolved=False)                    
 args = parser.parse_args()
 # Get the current directory from which to read files.
 current_path = os.path.abspath('./')
@@ -95,9 +101,15 @@ for file in tqdm(files, desc='Samples: '):
     gfit.display_linear_fit(saveas=os.path.join(out_path, fn_step2))
     plt.close()
 
-    fn_step2_time_resolved = file_prefix + "_step2_TR-D.png"
-    gfit.display_time_resolved_dc(saveas=os.path.join(out_path, fn_step2_time_resolved))
-    plt.close()
+    if args.time_resolved:
+        fn_step2_time_resolved = file_prefix + "_step2_TR-D.png"
+        gfit.display_time_resolved_dc(saveas=os.path.join(out_path, fn_step2_time_resolved))
+        plt.close()
+    gfit.export_to_csv(os.path.join(out_path, file_prefix))
+    if args.write_tif:
+        tiff_name = file_prefix + "_step1_fits.tif"
+        gfit.write_step1_fits_to_tiff(saveas=os.path.join(out_path, tiff_name))
+
     gfit.export_to_csv(os.path.join(out_path, file_prefix))
 Dstar_values_df = pd.DataFrame(Dstar_values)
 print(Dstar_values_df)
