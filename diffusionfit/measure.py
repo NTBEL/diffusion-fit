@@ -29,6 +29,13 @@ def rms_error(observed_values, estimated_values):
     return rmse
 
 @numba.njit(cache=True)
+def ma_error(observed_values, estimated_values):
+    """Mean absolute error function.
+    """
+    mae = np.mean(np.abs(observed_values - estimated_values))
+    return mae
+
+@numba.njit(cache=True)
 def akaike_ic(maximum_loglikelihood, N_params):
     """Akaike information criterion.
     """
