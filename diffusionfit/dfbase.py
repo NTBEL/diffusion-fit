@@ -367,7 +367,7 @@ class DiffusionFitBase(ABC):
         dx = self.pixel_width
         for fit_parm in self._fitting_parameters:
             dF_sim = self.model(self.r, *fit_parm)
-            trajectory.append(dF_sim.astype(np.float32)))
+            trajectory.append(dF_sim.astype(np.float32))
         tiffwrite(saveas, np.array(trajectory), imagej=True,
                   metadata={'spacing' : dx, 'unit': 'micron',
                             'axes': 'TYX', 'fps':fps})
