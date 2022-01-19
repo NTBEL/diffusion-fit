@@ -46,3 +46,11 @@ def log_intensity_withloss(t, k, B, t0):
 @numba.njit(cache=True)
 def log_intensity_noloss(t, B, t0):
     return - np.log(t+t0) + B
+
+@numba.njit(cache=True)
+def normal_diffusion(t, D, dim=2):
+    return 2*dim*D*t
+
+@numba.njit(cache=True)
+def anomalous_diffusion(t, D_alpha, alpha, dim=2):
+    return 2*dim*D_alpha*t**alpha    
