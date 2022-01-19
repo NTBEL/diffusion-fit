@@ -45,7 +45,10 @@ parser.add_argument('--write-tif', dest='write_tif', action='store_true',
 parser.set_defaults(write_tif=False)
 parser.add_argument('--time-resolved', dest='time_resolved', action='store_true',
                     help='Compute estimate of time-resolved diffusion coefficient and output corresponding plot.')
-parser.set_defaults(time_resolved=False)                    
+parser.set_defaults(time_resolved=False)
+parser.add_argument('--loss-rate', dest='loss_rate', action='store_true',
+                    help='Compute estimate of the loss rate for the diffusing species.')
+parser.set_defaults(loss_rate=False)
 args = parser.parse_args()
 # Get the current directory from which to read files.
 current_path = os.path.abspath('./')
@@ -87,9 +90,16 @@ for file in tqdm(files, desc='Samples: '):
     rmse_std = gfit.step1_rmse.std()
     rsquared = gfit.step2_rsquared
     effective_time = gfit.effective_time
-    Dstar_values.append({'sample:':sample_name, 'D*(x10^-7 cm^2/s)':D*1e7,
-                         'RMSE-mean':rmse_avg, 'RMSE-std':rmse_std,
-                         'R-squared':rsquared, 'EffectiveTime':effective_time})
+    if args.loss_rate:
+        loss_rate = gfit.loss_rate
+        Dstar_values.append({'sample:':sample_name, 'D*(x10^-7 cm^2/s)':D*1e7,
+                             'RMSE-mean':rmse_avg, 'RMSE-std':rmse_std,
+                             'R-squared':rsquared, 'EffectiveTime':effective_time,
+                             'LossRate':loss_rate})
+    else:
+        Dstar_values.append({'sample:':sample_name, 'D*(x10^-7 cm^2/s)':D*1e7,
+                             'RMSE-mean':rmse_avg, 'RMSE-std':rmse_std,
+                             'R-squared':rsquared, 'EffectiveTime':effective_time})
     fn_step1 = file_prefix + "_step1.png"
 
     gfit.display_image_fits(saveas=os.path.join(out_path, fn_step1))

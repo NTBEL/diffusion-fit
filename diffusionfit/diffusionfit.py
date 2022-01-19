@@ -5,9 +5,29 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from scipy.optimize import curve_fit
 from .dfbase import DiffusionFitBase
 from . import models
+from . import measure
 
+def _estimate_loss_rate(t, intensity, t0_max=10):
+
+    # Fit with loss rate
+    popt_k, pcov_k = curve_fit(models.log_intensity_withloss, t, np.log(intensity), bounds=[[0, -np.inf, 0], [1, np.inf, t0_max]])
+    # Fit a fixed zero loss rate
+    popt_k0, pcov_k0 = curve_fit(models.log_intensity_noloss, t, np.log(intensity), bounds=[[-np.inf, 0], [np.inf, t0_max]])
+    # Compute the sum of squared error for the two fits.
+    sse_k = measure.ss_error(intensity, np.exp(models.log_intensity_withloss(t, *popt_k)))
+    sse_k0 = measure.ss_error(intensity, np.exp(models.log_intensity_noloss(t, *popt_k0)))
+    # Now compute their Akaike information criterion for model comparison.
+    aic_k = measure.akaike_ic(-sse_k, 3) # with loss
+    aic_k0 = measure.akaike_ic(-sse_k0, 2) # no loss
+    kprime = 0
+    otherparm = popt_k0[1:]
+    if aic_k < aic_k0:
+        kprime = popt_k[0]
+        otherparm = popt_k[1:]
+    return kprime, popt_k, popt_k0, sse_k, sse_k0, aic_k, aic_k0
 
 class GaussianFit(DiffusionFitBase):
 
@@ -120,7 +140,7 @@ class GaussianFit(DiffusionFitBase):
                 idx = np.where(t_v == time)[0][0]
                 findex.append(idx)
             except:
-                continue    
+                continue
         columns = 4
         counter = 0
         #print(rows, columns)
@@ -215,6 +235,16 @@ class GaussianFit(DiffusionFitBase):
                             "Gamma^2":gamma_vals[i]**2, "RMSE":RMSE[i],
                             "RSSE":RSSE[i]})
         return pd.DataFrame(fp_vals)
+
+
+    def estimate_loss_rate(self):
+        t_v = self.times[self._idx_fitted_frames]
+        E_vals = self._fitting_parameters[:, 0]
+        loss_rate_data = _estimate_loss_rate(t_v, E_vals)
+        self._loss_rate_data = loss_rate_data
+        self._loss_rate = loss_rate_data[0]
+        return self._loss_rate
+
 
 class PointClarkFit(DiffusionFitBase):
 
@@ -421,3 +451,11 @@ class PointClarkFit(DiffusionFitBase):
                             "Gamma":gamma_vals[i], "Gamma^2":gamma_vals[i]**2,
                             "RMSE":RMSE[i], "RSSE":RSSE[i]})
         return pd.DataFrame(fp_vals)
+
+    def estimate_loss_rate(self):
+        t_v = self.times[self._idx_fitted_frames]
+        beta_vals = self._fitting_parameters[:, 1]
+        loss_rate_data = _estimate_loss_rate(t_v, beta_vals)
+        self._loss_rate_data = loss_rate_data
+        self._loss_rate = loss_rate_data[0]
+        return self._loss_rate

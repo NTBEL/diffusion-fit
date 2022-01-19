@@ -91,6 +91,8 @@ class DiffusionFitBase(ABC):
         self._Ds = None
         self._t0 = None
         self._n_params = None
+        self._loss_rate_data = None
+        self._loss_rate = None
 
         return
 
@@ -372,3 +374,15 @@ class DiffusionFitBase(ABC):
                   metadata={'spacing' : dx, 'unit': 'micron',
                             'axes': 'TYX', 'fps':fps})
         return
+
+
+    @abstractmethod
+    def estimate_loss_rate(self):
+        pass
+
+    @property
+    def loss_rate(self):
+        if self._loss_rate is None:
+            return self.estimate_loss_rate()
+        else:
+            return self._loss_rate 
