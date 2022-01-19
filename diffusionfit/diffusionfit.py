@@ -181,6 +181,7 @@ class GaussianFit(DiffusionFitBase):
             r_centers, I_ring_roi_exp, std_ring_roi_exp = self.radial_average(image)
             I_line_roi_fit = self.line_average(dF_sim)
             r_centers, I_ring_roi_fit, std_ring_roi_fit = self.radial_average(dF_sim)
+            
             if i == 0:
                 lineROI_zero_max = np.max(I_line_roi_exp)
                 ringROI_zero_max = np.max(I_ring_roi_exp)

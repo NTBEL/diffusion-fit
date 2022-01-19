@@ -46,6 +46,7 @@ class DiffusionFitBase(ABC):
         else:
             self._idx_diffusion_center = center
             self._diffusion_center = np.array(center) * pixel_width - 0.5*pixel_width
+            
         #print(self._idx_diffusion_center, self._diffusion_center)
         self.times = np.array(list(range(0, self.n_frames))) * timestep - (stimulation_frame) * timestep
         self.x_edges = np.linspace(0, pixel_width * self.images[0].shape[1],
