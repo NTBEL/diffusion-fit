@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from tifffile import imwrite as tiffwrite
 from . import measure
+from . import models
 
 class DiffusionFitBase(ABC):
     """Abstract base class for diffusion fitting."""
@@ -136,7 +137,7 @@ class DiffusionFitBase(ABC):
                 if verbose:
                     print("stopping at frame {} time {} peak-signal {} <= tail-signal {} + {}x tail-std {}".format(f, self.times[f], signal, tail_mean, step1_threshold, tail_std))
                 break
-            fit_parms, sse, rmse = self._fit_step1(img, signal)
+            fit_parms, sse, rmse = self._fit_intensity(img, signal)
             #rmse = np.sqrt(sse / self.n_pixels)
             #er = self.error_rate(img, fit_parms, rmse)
             rsse = self.rsse(img, fit_parms)
@@ -151,7 +152,7 @@ class DiffusionFitBase(ABC):
         self._fitting_scores = np.array(self._fitting_scores)
         #if len(self.times[self._idx_fitted_frames]) < 10:
         #    return np.nan
-        linr_res, Ds, t0 = self._fit_step2(self.times[self._idx_fitted_frames],
+        linr_res, Ds, t0 = self._fit_diffusion(self.times[self._idx_fitted_frames],
                             self._fitting_parameters[:,-1])
         self._linr_res = linr_res
         self._Ds = Ds * 1e-8 # 1e-8 converts from um^2/s to cm^2/s
@@ -160,11 +161,11 @@ class DiffusionFitBase(ABC):
         return self._Ds
 
     @staticmethod
-    def linear_model(time, diff_coeff, t0):
-        return 4 * diff_coeff * (time + t0)
+    def diffusion_model(time, diff_coeff, t0):
+        return models.normal_diffusion((time + t0), diff_coeff)
 
     @abstractmethod
-    def model(self, r, param):
+    def intensity_model(self, r, param):
         """The model for the intensity distribution.
         """
         pass
@@ -176,7 +177,7 @@ class DiffusionFitBase(ABC):
 
     def error_rate(self, image, theta, rmse):
         rmask = self.fitting_mask
-        I_fit = self.model(self.r[rmask], *theta)
+        I_fit = self.intensity_model(self.r[rmask], *theta)
         I_exp = image
         abs_error = np.abs(I_exp[rmask] - I_fit)
         ci_val = 3 * rmse
@@ -185,18 +186,18 @@ class DiffusionFitBase(ABC):
 
     def rsse(self, image, theta):
         rmask = self.fitting_mask
-        I_fit = self.model(self.r[rmask], *theta)
+        I_fit = self.intensity_model(self.r[rmask], *theta)
         I_exp = image
         sse = np.std((I_exp[rmask] - I_fit)**2)
         return np.sqrt(sse)
 
-    def _fit_step1(self, image, signal):
+    def _fit_intensity(self, image, signal):
         """Non-linear fit of the images."""
         rmask = self.fitting_mask
         def cost(theta):
             if (theta < 0).any():
                 return np.inf
-            I_fit = self.model(self.r[rmask], *theta)
+            I_fit = self.intensity_model(self.r[rmask], *theta)
             I_exp = image[rmask]
             sse = measure.ss_error(I_exp, I_fit)
             return sse
@@ -212,7 +213,7 @@ class DiffusionFitBase(ABC):
         rmse = measure.sse_to_rmse(sse, self.n_fitted_pixels)
         return opt_res.x, sse, rmse
 
-    def _fit_step2(self, times, gamma):
+    def _fit_diffusion(self, times, gamma):
         """Linear fit of gamma^2 vs. time."""
         linr_res = linregress(times, gamma**2)
         # run it
@@ -322,7 +323,7 @@ class DiffusionFitBase(ABC):
         plt.plot(t_v, gamma_vals**2, marker='o', linestyle="", label=None,
                  color='grey')
         tspan = np.linspace(0, np.max(t_v) * 1.1, 500)
-        plt.plot(tspan, self.linear_model(tspan, self._Ds * 1e8, self._t0),
+        plt.plot(tspan, self.diffusion_model(tspan, self._Ds * 1e8, self._t0),
                  linestyle='--', label='Fit', color='k')
         plt.ylabel(r'$\gamma^2$')
         plt.xlabel('Time (s)')
@@ -359,7 +360,7 @@ class DiffusionFitBase(ABC):
         fp_df = self.fitting_parameters
         fp_df.to_csv(prefix+'_step_1_fits.csv', index=False)
         fp_df_step2 = fp_df[['Time','Gamma^2']]
-        lin_fit = self.linear_model(fp_df['Time'].values, self._Ds * 1e8, self._t0)
+        lin_fit = self.diffusion_model(fp_df['Time'].values, self._Ds * 1e8, self._t0)
         fp_df_step2['Linear-Fit'] = lin_fit.tolist()
         fp_df_step2.to_csv(prefix+'_step_2_fits.csv', index=False)
 
@@ -368,7 +369,7 @@ class DiffusionFitBase(ABC):
         fps = 1/self.timestep
         dx = self.pixel_width
         for fit_parm in self._fitting_parameters:
-            dF_sim = self.model(self.r, *fit_parm)
+            dF_sim = self.intensity_model(self.r, *fit_parm)
             trajectory.append(dF_sim.astype(np.float32))
         tiffwrite(saveas, np.array(trajectory), imagej=True,
                   metadata={'spacing' : dx, 'unit': 'micron',
@@ -385,4 +386,4 @@ class DiffusionFitBase(ABC):
         if self._loss_rate is None:
             return self.estimate_loss_rate()
         else:
-            return self._loss_rate 
+            return self._loss_rate

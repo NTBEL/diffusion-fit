@@ -32,7 +32,7 @@ def _estimate_loss_rate(t, intensity, t0_max=10):
 class GaussianFit(DiffusionFitBase):
 
     @staticmethod
-    def model(r, E, gamma):
+    def intensity_model(r, E, gamma):
         """Gaussian diffusion function.
         """
         return models.gaussian(r, E, gamma)
@@ -74,7 +74,7 @@ class GaussianFit(DiffusionFitBase):
             gamma = self._fitting_parameters[i][1]
             rmse = self._fitting_scores[i][0]
             rsse = self._fitting_scores[i][1]
-            dF_sim = self.model(self.r, *self._fitting_parameters[i])
+            dF_sim = self.intensity_model(self.r, *self._fitting_parameters[i])
             image = self.images[self._idx_fitted_frames[i]] - self.background
             axes[row, 0].imshow(image, cmap='viridis', vmin=0, vmax=1.5*vmax, extent=extent)
             axes[row, 0].set_xlabel(r'x ($\mu$m)', fontsize=14)
@@ -167,7 +167,7 @@ class GaussianFit(DiffusionFitBase):
             gamma = self._fitting_parameters[i][1]
             rmse = self._fitting_scores[i][0]
             rsse = self._fitting_scores[i][1]
-            dF_sim = self.model(self.r, *self._fitting_parameters[i])
+            dF_sim = self.intensity_model(self.r, *self._fitting_parameters[i])
             image = self.images[self._idx_fitted_frames[i]] - self.background
             axes[row, 0].imshow(image, cmap='viridis', vmin=0, vmax=1.5*vmax, extent=extent)
             axes[row, 0].set_xlabel(r'x ($\mu$m)', fontsize=14)
@@ -249,7 +249,7 @@ class GaussianFit(DiffusionFitBase):
 class PointClarkFit(DiffusionFitBase):
 
     @staticmethod
-    def model(r, Emax, beta, gamma):
+    def intensity_model(r, Emax, beta, gamma):
         """Point-Clark diffusion distribution function for receptor-based sensors.
         """
         return models.point_clark(r, Emax, beta, gamma)
@@ -292,7 +292,7 @@ class PointClarkFit(DiffusionFitBase):
             gamma = self._fitting_parameters[i][2]
             rmse = self._fitting_scores[i][0]
             rsse = self._fitting_scores[i][1]
-            dF_sim = self.model(self.r, *self._fitting_parameters[i])
+            dF_sim = self.intensity_model(self.r, *self._fitting_parameters[i])
             image = self.images[self._idx_fitted_frames[i]] - self.background
             axes[row, 0].imshow(image, cmap='viridis', vmin=0, vmax=1.5*vmax, extent=extent)
             axes[row, 0].set_xlabel(r'x ($\mu$m)', fontsize=14)
@@ -382,7 +382,7 @@ class PointClarkFit(DiffusionFitBase):
             gamma = self._fitting_parameters[i][2]
             rmse = self._fitting_scores[i][0]
             rsse = self._fitting_scores[i][1]
-            dF_sim = self.model(self.r, *self._fitting_parameters[i])
+            dF_sim = self.intensity_model(self.r, *self._fitting_parameters[i])
             image = self.images[self._idx_fitted_frames[i]] - self.background
             axes[row, 0].imshow(image, cmap='viridis', vmin=0, vmax=1.5*vmax, extent=extent)
             axes[row, 0].set_xlabel(r'x ($\mu$m)', fontsize=14)
