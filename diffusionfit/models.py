@@ -100,13 +100,13 @@ def point_clark(distances: np.ndarray, imax: float, beta: float,
     return Emax / (1 + beta*np.exp((r/gamma)**2))
 
 @numba.njit(cache=True)
-def point_source(time: Union(float, np.ndarray),
-                 distance: Union(float, np.ndarray),
+def point_source(time: Union[float, np.ndarray],
+                 distance: Union[float, np.ndarray],
                  source_molecules: int,
                  volume_fraction: float,
                  diffusion_coefficient: float,
                  tortuosity: float,
-                 dimensions: int=3) -> Union(float, np.ndarray):
+                 dimensions: int=3) -> Union[float, np.ndarray]:
     """Models isotropic diffusion from an instantaneous point source.
 
     This model describes the concentration distribution of a molecule over time
@@ -140,14 +140,14 @@ def point_source(time: Union(float, np.ndarray),
     return a * b / c
 
 @numba.njit(cache=True)
-def point_source_withloss(time: Union(float, np.ndarray),
-                          distance: Union(float, np.ndarray),
+def point_source_withloss(time: Union[float, np.ndarray],
+                          distance: Union[float, np.ndarray],
                           source_molecules: int,
                           volume_fraction: float,
                           diffusion_coefficient: float,
                           tortuosity: float,
                           loss_rate: float,
-                          dimensions: int=3) -> Union(float, np.ndarray):
+                          dimensions: int=3) -> Union[float, np.ndarray]:
     """Models isotropic diffusion from an instantaneous point source.
 
     This model describes the concentration distribution of a molecule over time
