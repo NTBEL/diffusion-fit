@@ -46,7 +46,7 @@ class DiffusionFitBase(ABC):
         else:
             self._idx_diffusion_center = center
             self._diffusion_center = np.array(center) * pixel_width - 0.5*pixel_width
-            
+
         #print(self._idx_diffusion_center, self._diffusion_center)
         self.times = np.array(list(range(0, self.n_frames))) * timestep - (stimulation_frame) * timestep
         self.x_edges = np.linspace(0, pixel_width * self.images[0].shape[1],
@@ -163,7 +163,17 @@ class DiffusionFitBase(ABC):
 
     @staticmethod
     def diffusion_model(time, diff_coeff, t0):
-        return models.normal_diffusion((time + t0), diff_coeff)
+        """Models the relationship between gamma^2, the diffusion coefficient, and time.
+
+        Using a linear relationship based the instantaneous point source model
+        where:
+            gamma^2 = 4*D*t,
+        with gamma being a fitting parameter, D the diffusion coeffient, and t
+        the time.
+        """
+        # Use the normal diffusion model with 2 dimensions to yield the
+        # desired functional form and linear relationship.
+        return models.normal_diffusion((time + t0), diff_coeff, dimensions=2)
 
     @abstractmethod
     def intensity_model(self, r, param):
