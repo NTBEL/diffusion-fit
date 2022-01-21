@@ -16,7 +16,7 @@ except ImportError:
     def tqdm(iterator, **kwargs):
         return iterator
 
-from .diffusionfit import GaussianFit
+from .diffusionfit import GaussianFit, PointClarkFit
 
 
 parser = argparse.ArgumentParser()
@@ -29,8 +29,29 @@ parser.add_argument('stim_frame', metavar='stim_frame', type=int,
                     help='Set the frame where the stimulation takes place.')
 parser.add_argument('d_stim', metavar='d_stim', type=float, default=0.,
                     help='Set the diameter of the stimulation zone in microns.')
-parser.add_argument('ston', metavar='signal-to-noise', type=int, default=5,
-                    help='Set the singal/noise threshold for terminating the fitting analysis.')
+parser.add_argument('-peak-to-tail', nargs='?', metavar='peak_to_tail', type=int, default=3,
+                    help='Set the peak/tail threshold during step 1 fitting for terminating the fitting analysis.')
+parser.add_argument('-center', nargs='?', metavar='center', type=str, default='image',
+                    help='Set how the center of the diffusion cloud is determined. Options are: image - (default), use the center pixel location of the image. intensity - centroid of intensity after stimulation. y,x - a specific pixel location.')
+parser.add_argument('--ignore-threshold', dest='apply_threshold',
+                    action='store_false',
+                    help='Ignore the thresholding for termination after step 1 fitting.')
+parser.set_defaults(apply_threshold=True)
+parser.add_argument('-end-frame', nargs='?', metavar='end_frame', type=int,
+                    default=None, const=None,
+                    help='Specify the maximum frame to include in the analysis. Should larger than stim_frame.')
+parser.add_argument('--write-tif', dest='write_tif', action='store_true',
+                    help='Write out an ImageJ compatible tiff image file of the step 1 fits.')
+parser.set_defaults(write_tif=False)
+parser.add_argument('--time-resolved', dest='time_resolved', action='store_true',
+                    help='Compute estimate of time-resolved diffusion coefficient and output corresponding plot.')
+parser.set_defaults(time_resolved=False)
+parser.add_argument('--loss-rate', dest='loss_rate', action='store_true',
+                    help='Compute estimate of the loss rate for the diffusing species.')
+parser.set_defaults(loss_rate=False)
+parser.add_argument('--point-clark', dest='point_clark', action='store_true',
+                    help='Use the Point-Clark model (PointClarkFit) to fit the diffusion intensity (for peptides).')
+parser.set_defaults(point_clark=False)
 args = parser.parse_args()
 # Get the current directory from which to read files.
 current_path = os.path.abspath('./')
@@ -42,25 +63,72 @@ if not os.path.isdir(out_path):
 files = glob.glob(current_path+'/*.tif')
 
 Dstar_values = list()
+# Clean up the center argument in case of non-default
+center = ''.join(args.center.split())
+# If a pixel positon is given convert to a list
+if ',' in center:
+    center_split = center.split(',')
+    print(center_split)
+    center = list([int(center_split[0]), int(center_split[1])])
+end_frame = args.end_frame
+if end_frame is not None:
+    if end_frame < args.stim_frame:
+        end_frame = None
 for file in tqdm(files, desc='Samples: '):
     file_prefix = os.path.splitext(os.path.split(file)[1])[0]
     sample_name = os.path.splitext(os.path.split(os.path.basename(os.path.normpath(file)))[1])[0]
-    gfit = GaussianFit(file, stimulation_frame=args.stim_frame,
-                       timestep=args.timestep, pixel_width=args.pixel_size,
-                       stimulation_radius=args.d_stim/2)
+    if args.point_clark:
+        dfit = PointClarkFit(file, stimulation_frame=args.stim_frame,
+                           timestep=args.timestep, pixel_width=args.pixel_size,
+                           stimulation_radius=args.d_stim/2,
+                           center=center)
+    else:
+        dfit = GaussianFit(file, stimulation_frame=args.stim_frame,
+                           timestep=args.timestep, pixel_width=args.pixel_size,
+                           stimulation_radius=args.d_stim/2,
+                           center=center)
 
-    D = gfit.fit(verbose=False, s_to_n=args.ston)
+    D = dfit.fit(end=end_frame, verbose=False,
+                 apply_step1_threshold=args.apply_threshold,
+                 step1_threshold=args.peak_to_tail)
     if np.isnan(D):
         D = None
         Dstar_values.append({'sample:':sample_name, 'D*(x10^-7 cm^2/s)':D})
         continue
-    Dstar_values.append({'sample:':sample_name, 'D*(x10^-7 cm^2/s)':D*1e7})
+    rmse_avg = dfit.step1_rmse.mean()
+    rmse_std = dfit.step1_rmse.std()
+    rsquared = dfit.step2_rsquared
+    effective_time = dfit.effective_time
+    if args.loss_rate:
+        loss_rate = dfit.loss_rate
+        Dstar_values.append({'sample:':sample_name, 'D*(x10^-7 cm^2/s)':D*1e7,
+                             'RMSE-mean':rmse_avg, 'RMSE-std':rmse_std,
+                             'R-squared':rsquared, 'EffectiveTime':effective_time,
+                             'LossRate':loss_rate})
+    else:
+        Dstar_values.append({'sample:':sample_name, 'D*(x10^-7 cm^2/s)':D*1e7,
+                             'RMSE-mean':rmse_avg, 'RMSE-std':rmse_std,
+                             'R-squared':rsquared, 'EffectiveTime':effective_time})
     fn_step1 = file_prefix + "_step1.png"
-    gfit.display_image_fits(saveas=os.path.join(out_path, fn_step1))
+
+    dfit.display_image_fits(saveas=os.path.join(out_path, fn_step1))
+    #tp = [0., 6., 12., 18., 24., 30.]
+    #dfit.display_image_fits_at_times(tp, saveas=os.path.join(out_path, fn_step1))
     plt.close()
 
     fn_step2 = file_prefix + "_step2.png"
-    gfit.display_linear_fit(saveas=os.path.join(out_path, fn_step2))
+    dfit.display_linear_fit(saveas=os.path.join(out_path, fn_step2))
     plt.close()
+
+    if args.time_resolved:
+        fn_step2_time_resolved = file_prefix + "_step2_TR-D.png"
+        dfit.display_time_resolved_dc(saveas=os.path.join(out_path, fn_step2_time_resolved))
+        plt.close()
+    dfit.export_to_csv(os.path.join(out_path, file_prefix))
+    if args.write_tif:
+        tiff_name = file_prefix + "_step1_fits.tif"
+        dfit.write_step1_fits_to_tiff(saveas=os.path.join(out_path, tiff_name))
+
+    dfit.export_to_csv(os.path.join(out_path, file_prefix))
 Dstar_values_df = pd.DataFrame(Dstar_values)
 print(Dstar_values_df)
