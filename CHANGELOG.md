@@ -4,16 +4,6 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased] - yyyy-mm-dd
-
-N/A
-
-### Added
-
-### Changed
-
-### Fixed
-
 ## [0.3.0] - 2021-12-20
 
 ### Added
@@ -24,15 +14,21 @@ N/A
 - Added additional property functions to DiffusionFitBase:  fit_times, step1_rmse, step2_rsquared, effective_time.
 - The command line run script (__main__.py) prints the Effective Time as part of Dstar_values DataFrame.
 - New models module defining diffusion model functions to use when doing the fitting. Functions from this module are used by the fitting classes.
-- New dependency on Numba
+- New dependency on Numba and its use to improve performance of some numerical functions.
 - New fitting class PointClarkFit for fitting fluorescent signal of receptor-based peptide sensors during peptide diffusion.
-- New optional input argument for the command line version: -center.
+- Function in the DiffusionFitBase to write out the step 1 fits as an ImageJ compatible tif image trajectory.
+- Funtionality to estimate the loss rate of the diffusing species.
+- New optional input arguments for the command line version: -center, --time-resolved, --ignore-threshold, --write-tif, --loss-rate, --point-clark.
+- Docstrings to functions in the models.py module.
+- New pip install section in the README.
 
 ### Changed
 - Changed the cmap used for step 1 experiment and 2D fit images from gray to viridis
 - Replaced the ER goodness of fit metric with RSSE (Root Standard deviation of the Squared Error)
 - Changed the way the thresholding is done after step 1 fitting. Now it terminates when mean(peak-region) <= mean(tail-region) + peak-to-tail * std(tail-region) and uses radial selections from the image instead of computing values from the Line-ROI.
 - The required argument signal_to_noise in __main__.py arguments was changed to optional keyword argument -peak-to-tail with default value of 3. This is used in the new step 1 thresholding.
+- In DiffusionFitBase class the member function `model` was changed to `intensity_model`, `linear_model` was changed to `diffusion_model`, and the `_fit_step1` and `fit_step2` functions were changed to `_fit_intensity` and `_fit_diffusion`, respectively.
+- Updated the initial description, What's new in, License, and Documentation and Usage sections in the README. 
 
 
 ## [0.2.0] - 2021-12-20
@@ -55,3 +51,13 @@ N/A
 
 ### Added
 - Initial development version with 2D Gaussian fitting.
+
+## [Unreleased] - yyyy-mm-dd
+
+N/A
+
+### Added
+
+### Changed
+
+### Fixed
