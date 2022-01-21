@@ -181,7 +181,7 @@ class GaussianFit(DiffusionFitBase):
             r_centers, I_ring_roi_exp, std_ring_roi_exp = self.radial_average(image)
             I_line_roi_fit = self.line_average(dF_sim)
             r_centers, I_ring_roi_fit, std_ring_roi_fit = self.radial_average(dF_sim)
-            
+
             if i == 0:
                 lineROI_zero_max = np.max(I_line_roi_exp)
                 ringROI_zero_max = np.max(I_ring_roi_exp)
@@ -289,7 +289,7 @@ class PointClarkFit(DiffusionFitBase):
             time = t_v[i]
             #tcol = time_col[t_idx]
             Emax = self._fitting_parameters[i][0]
-            beta = self.fitting_parameters[i][1]
+            beta = self._fitting_parameters[i][1]
             gamma = self._fitting_parameters[i][2]
             rmse = self._fitting_scores[i][0]
             rsse = self._fitting_scores[i][1]
@@ -302,7 +302,7 @@ class PointClarkFit(DiffusionFitBase):
             axes[row, 1].imshow(dF_sim, cmap='viridis', vmin=0, vmax=vmax, extent=extent)
             axes[row, 1].set_xlabel(r'x ($\mu$m)', fontsize=14)
             axes[row, 1].set_ylabel(r'y ($\mu$m)', fontsize=14)
-            axes[row, 1].set_title("2D Point-Clark Fit\n$E_m$: {:.1e} | $\beta$: {:.1e} | $\gamma$: {:.1e} | RMSE: {:.1f} | RSSE: {:.1f}".format(Emax, beta, gamma, rmse, rsse), fontdict={'fontsize':10}, pad=10)
+            axes[row, 1].set_title("2D Point-Clark Fit\n$I_m$: {:.1e} | Beta: {:.1e} | $\gamma$: {:.1e} | RMSE: {:.1f}".format(Emax, beta, gamma, rmse), fontdict={'fontsize':10}, pad=10)
             I_line_roi_exp = self.line_average(image)
             r_centers, I_ring_roi_exp, std_ring_roi_exp = self.radial_average(image)
             I_line_roi_fit = self.line_average(dF_sim)
@@ -392,7 +392,7 @@ class PointClarkFit(DiffusionFitBase):
             axes[row, 1].imshow(dF_sim, cmap='viridis', vmin=0, vmax=vmax, extent=extent)
             axes[row, 1].set_xlabel(r'x ($\mu$m)', fontsize=14)
             axes[row, 1].set_ylabel(r'y ($\mu$m)', fontsize=14)
-            axes[row, 1].set_title("2D Point-Clark Fit\n$E_m$: {:.1e} | $\beta$: {:.1e} | $\gamma$: {:.1e} | RMSE: {:.1f} | RSSE: {:.1f}".format(Emax, beta, gamma, rmse, rsse), fontdict={'fontsize':10}, pad=10)
+            axes[row, 1].set_title("2D Point-Clark Fit\n$I_m$: {:.1e} | Beta: {:.1e} | $\gamma$: {:.1e} | RMSE: {:.1f}".format(Emax, beta, gamma, rmse), fontdict={'fontsize':10}, pad=10)
             I_line_roi_exp = self.line_average(image)
             r_centers, I_ring_roi_exp, std_ring_roi_exp = self.radial_average(image)
             I_line_roi_fit = self.line_average(dF_sim)

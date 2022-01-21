@@ -97,7 +97,7 @@ def point_clark(distances: np.ndarray, imax: float, beta: float,
         A numpy.ndarray of the corresponding intensity values at each positions
         relative to the diffusion point source.
     """
-    return Emax / (1 + beta*np.exp((r/gamma)**2))
+    return imax / (1 + beta*np.exp((distances/gamma)**2))
 
 @numba.njit(cache=True)
 def point_source(time: Union[float, np.ndarray],
