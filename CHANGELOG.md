@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.4.0] - 2022-02-08
+
+### Added
+- In DiffusionFitBase.fit function added new boolean keyword argument `threshold_on_fit` which if True will use the fit of the image to define the peak and tail signal values for step 1 thresholding and termination of the fitting procedure.
+- New optional flag `--threshold-fit` for the CLI script to set the `threshold_on_fit` keyword argument to the fit function to True.
+- In DiffusionFitBase.fit function added new keyword argument `threshold_on` which sets how the peak and tail signal values for step 1 thresholding and termination of the fitting procedure computed. It has string options image, filter, line, and fit.
+- New optional flag `-threshold-on` for the CLI script to set the `threshold_on` keyword argument to the fit function.
+- Class variables `_threshold_on_options` and `_center_options` in ModeBase and some error checking to make sure the `center` and `threshold_on` keyword options  to `__init__` and `fit` are valid options.
+- New fitting class `AnisotropicGaussianFit` for fitting cases where the diffusion coefficient is different along the major x and y axes, so the diffusion cloud is not isotropic.
+- New optional flag `--anisotropic-gaussian` for the CLI script to use the `AnisotropicGaussianFit` class for fitting along with changes in the CLI script to adjust the DataFrame used to print values to the screen after all fitting is complete.
+- In the CLI script an additional output of the DataFrame storing the diffusion coefficients and R-squared values for each image file to a csv file named diffusion_fitting/diffusion_fitting_summary.csv.
+- In the CLI script and additional output of the input arguments to a text file diffusion_fitting/diffusionfit_commandline_args.txt.     
+
+### Changed
+- In the export_to_csv function of DiffusionFitBase the addition of the linear fit column was changed to use the DataFrame `assign` function to get rid of the SettingWithCopyWarning. The column name was also changed from `Linear-Fit` to `LinearFit`.
+- In the DiffusionFitBase.fit function the variables named signal were changed to peak to match the peak-to-tail thresholding naming during step 1 fitting.
+
+### Fixed
+- The issue with early termination due to lower than expected signal near the stimulation zone can be addressed using the newly added `threshold_on` option (`-threshold-on` from CLI). For example, using `threshold_on='fit'` will ensure smooth signal and tail regions consistent with the assumed intensity model.  
+
+
 ## [0.3.0] - 2021-12-20
 
 ### Added
@@ -28,7 +49,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Changed the way the thresholding is done after step 1 fitting. Now it terminates when mean(peak-region) <= mean(tail-region) + peak-to-tail * std(tail-region) and uses radial selections from the image instead of computing values from the Line-ROI.
 - The required argument signal_to_noise in __main__.py arguments was changed to optional keyword argument -peak-to-tail with default value of 3. This is used in the new step 1 thresholding.
 - In DiffusionFitBase class the member function `model` was changed to `intensity_model`, `linear_model` was changed to `diffusion_model`, and the `_fit_step1` and `fit_step2` functions were changed to `_fit_intensity` and `_fit_diffusion`, respectively.
-- Updated the initial description, What's new in, License, and Documentation and Usage sections in the README. 
+- Updated the initial description, What's new in, License, and Documentation and Usage sections in the README.
 
 
 ## [0.2.0] - 2021-12-20
