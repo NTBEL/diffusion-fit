@@ -11,11 +11,9 @@ Additionally, we have extended the framework to provide a model for fitting data
 
 ### What's new in
 
-#### version 0.3.0
- * PointClarkFit fitting class for fitting the fluorescent signal of receptor-based peptide sensors during peptide point source diffusion.
- * Funtionality to estimate the loss rate of the diffusing species.
- * Additional options when running **diffusion-fit** with it's command line interface.
- * Functionality to export fitting data to csv and tiff files.
+#### version 0.4.0
+ * New options define how the peak and tail signal are computed when applying the thresholding for images to determine wheter to terminate the fitting.
+ * New AnisotropicGaussianFit class for fitting images with anisotropic diffusion along the major (x,y) axes; the x and y axes can have different diffusion coefficients. 
 
 See the [CHANGELOG](CHANGELOG.md) for additional details.  
 
@@ -55,11 +53,17 @@ Note that `diffusion-fit` has the following core dependencies:
    * [Numba](https://numba.pydata.org/)
 
 ### pip install
-You can install `diffusionfit` with `pip` sourced from the GitHub repo:
+You can install `diffusionfit` version 0.4.0 with `pip` sourced from the GitHub repo:
+
+##### with git installed:
 ```
-pip install -e git+https://github.com/NTBEL/diffusion-fit#egg=diffusionfit
+pip install git+https://github.com/NTBEL/diffusion-fit@v0.4.0
 ```
 
+##### without git installed:
+```
+pip install https://github.com/NTBEL/diffusion-fit/archive/refs/tags/v0.4.0.zip
+```
 ### Manual install
 First, download the repository. Then from the `diffusion-fit` folder/directory run
 ```
