@@ -38,7 +38,7 @@ def ma_error(observed_values, estimated_values):
 @numba.njit(cache=True)
 def akaike_ic(maximum_loglikelihood, N_params):
     """Akaike information criterion."""
-    return 2 * N_params + 2 * maximum_loglikelihood
+    return 2 * N_params - 2 * maximum_loglikelihood
 
 
 @numba.njit(cache=True)
