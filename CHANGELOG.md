@@ -7,8 +7,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [0.4.0] - 2022-02-08
 
 ### Added
-- In DiffusionFitBase.fit function added new boolean keyword argument `threshold_on_fit` which if True will use the fit of the image to define the peak and tail signal values for step 1 thresholding and termination of the fitting procedure.
-- New optional flag `--threshold-fit` for the CLI script to set the `threshold_on_fit` keyword argument to the fit function to True.
 - In DiffusionFitBase.fit function added new keyword argument `threshold_on` which sets how the peak and tail signal values for step 1 thresholding and termination of the fitting procedure computed. It has string options image, filter, line, and fit.
 - New optional flag `-threshold-on` for the CLI script to set the `threshold_on` keyword argument to the fit function.
 - Class variables `_threshold_on_options` and `_center_options` in ModeBase and some error checking to make sure the `center` and `threshold_on` keyword options  to `__init__` and `fit` are valid options.
@@ -26,7 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 - The issue with early termination due to lower than expected signal near the stimulation zone can be addressed using the newly added `threshold_on` option (`-threshold-on` from CLI). For example, using `threshold_on='fit'` will ensure smooth signal and tail regions consistent with the assumed intensity model.  
-- In `measure.akaike_ic` the incorrect addition of the parametric term and max maximum_loglikelihood was fixed to be subtraction. This was causing an issue in the estimation of the time resolved diffusion coefficient. 
+- In `measure.akaike_ic` the incorrect addition of the parametric term and max maximum_loglikelihood was fixed to be subtraction. This was causing an issue in the estimation of the time resolved diffusion coefficient.
 
 
 ## [0.3.0] - 2021-12-20
