@@ -16,7 +16,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - New optional flag `--anisotropic-gaussian` for the CLI script to use the `AnisotropicGaussianFit` class for fitting along with changes in the CLI script to adjust the DataFrame used to print values to the screen after all fitting is complete.
 - In the CLI script an additional output of the DataFrame storing the diffusion coefficients and R-squared values for each image file to a csv file named diffusion_fitting/diffusion_fitting_summary.csv.
 - In the CLI script and additional output of the input arguments to a text file diffusion_fitting/diffusionfit_commandline_args.txt.   
-* Additional documentation on the programmatic and command line usage in the README.  
+- Additional documentation on the programmatic and command line usage in the README.  
+- New optional flag `--no-background` for the CLI script to set models not to try and compute or subtract background from the images.
 
 ### Changed
 - In the export_to_csv function of DiffusionFitBase the addition of the linear fit column was changed to use the DataFrame `assign` function to get rid of the SettingWithCopyWarning. The column name was also changed from `Linear-Fit` to `LinearFit`.
@@ -25,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 - The issue with early termination due to lower than expected signal near the stimulation zone can be addressed using the newly added `threshold_on` option (`-threshold-on` from CLI). For example, using `threshold_on='fit'` will ensure smooth signal and tail regions consistent with the assumed intensity model.  
+- In `measure.akaike_ic` the incorrect addition of the parametric term and max maximum_loglikelihood was fixed to be subtraction. This was causing an issue in the estimation of the time resolved diffusion coefficient. 
 
 
 ## [0.3.0] - 2021-12-20
