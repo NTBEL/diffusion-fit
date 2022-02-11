@@ -123,7 +123,7 @@ class DiffusionFitBase(ABC):
         else:
             self.background = 0
             # self._bgstd = 0
-            print("background ", self.background)
+            # print("background ", self.background)
         # self.background = background
 
         self._idx_fitted_frames = None
