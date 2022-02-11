@@ -470,7 +470,7 @@ class DiffusionFitBase(ABC):
         plt.plot(t_v, d_c, marker="o", linestyle="-", label=None, color="grey")
         plt.ylabel(r"$D(t)$ (x$10^{{-7}}$ cm$^2$/s)")
         plt.xlabel("Time (s)")
-        plt.ylim((1, 70))
+        # plt.ylim((1, 70))
         # plt.legend(loc=0, frameon=False)
         plt.title("Time-Resolved Diffusion Coefficient", pad=20)
         plt.tight_layout()
