@@ -15,11 +15,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - New fitting class `AnisotropicGaussianFit` for fitting cases where the diffusion coefficient is different along the major x and y axes, so the diffusion cloud is not isotropic.
 - New optional flag `--anisotropic-gaussian` for the CLI script to use the `AnisotropicGaussianFit` class for fitting along with changes in the CLI script to adjust the DataFrame used to print values to the screen after all fitting is complete.
 - In the CLI script an additional output of the DataFrame storing the diffusion coefficients and R-squared values for each image file to a csv file named diffusion_fitting/diffusion_fitting_summary.csv.
-- In the CLI script and additional output of the input arguments to a text file diffusion_fitting/diffusionfit_commandline_args.txt.     
+- In the CLI script and additional output of the input arguments to a text file diffusion_fitting/diffusionfit_commandline_args.txt.   
+* Additional documentation on the programmatic and command line usage in the README.  
 
 ### Changed
 - In the export_to_csv function of DiffusionFitBase the addition of the linear fit column was changed to use the DataFrame `assign` function to get rid of the SettingWithCopyWarning. The column name was also changed from `Linear-Fit` to `LinearFit`.
 - In the DiffusionFitBase.fit function the variables named signal were changed to peak to match the peak-to-tail thresholding naming during step 1 fitting.
+- Updated the version numbers in the README.
 
 ### Fixed
 - The issue with early termination due to lower than expected signal near the stimulation zone can be addressed using the newly added `threshold_on` option (`-threshold-on` from CLI). For example, using `threshold_on='fit'` will ensure smooth signal and tail regions consistent with the assumed intensity model.  
