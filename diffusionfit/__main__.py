@@ -128,6 +128,13 @@ parser.add_argument(
     help="Use the Anisotropic Gaussian model (AnisotropicGaussianFit) to fit the diffusion intensity for cases where diffusion along the x and y dimensions is different.",
 )
 parser.set_defaults(anisotropic_gaussian=False)
+parser.add_argument(
+    "--no-background",
+    dest="no_background",
+    action="store_true",
+    help="Don't compute or subtract any background from the images when fitting the intensity.",
+)
+parser.set_defaults(no_background=False)
 args = parser.parse_args()
 # Get the current directory from which to read files.
 current_path = os.path.abspath("./")
@@ -163,6 +170,7 @@ for file in tqdm(files, desc="Samples: "):
             pixel_width=args.pixel_size,
             stimulation_radius=args.d_stim / 2,
             center=center,
+            subtract_background=(not args.no_background),
         )
     elif args.anisotropic_gaussian:
         dfit = AnisotropicGaussianFit(
@@ -172,6 +180,7 @@ for file in tqdm(files, desc="Samples: "):
             pixel_width=args.pixel_size,
             stimulation_radius=args.d_stim / 2,
             center=center,
+            subtract_background=(not args.no_background),
         )
     else:
         dfit = GaussianFit(
@@ -181,6 +190,7 @@ for file in tqdm(files, desc="Samples: "):
             pixel_width=args.pixel_size,
             stimulation_radius=args.d_stim / 2,
             center=center,
+            subtract_background=(not args.no_background),
         )
 
     D = dfit.fit(
