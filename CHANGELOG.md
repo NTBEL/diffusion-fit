@@ -15,7 +15,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - In the CLI script an additional output of the DataFrame storing the diffusion coefficients and R-squared values for each image file to a csv file named diffusion_fitting/diffusion_fitting_summary.csv.
 - In the CLI script and additional output of the input arguments to a text file diffusion_fitting/diffusionfit_commandline_args.txt.   
 - Additional documentation on the programmatic and command line usage in the README.  
-- New optional flag `--no-background` for the CLI script to set models not to try and compute or subtract background from the images.
+- New keyword argument for the `DiffusionFitBase.__init__` function `subtract_background` which sets whether a background image should be computed and subtracted during the fitting.  
+- New optional flag `--no-background` for the CLI script to set models not to try and compute or subtract background from the images. This corresponds to the `subtract_background` keyword argument to  `DiffusionFitBase.__init__`. 
 
 ### Changed
 - In the export_to_csv function of DiffusionFitBase the addition of the linear fit column was changed to use the DataFrame `assign` function to get rid of the SettingWithCopyWarning. The column name was also changed from `Linear-Fit` to `LinearFit`.
