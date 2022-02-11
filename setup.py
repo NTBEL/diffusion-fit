@@ -6,8 +6,16 @@ with open("README.md", "r") as fh:
 setuptools.setup(
     name="diffusionfit",
     version="0.4.0",
-    python_requires='>=3.9',
-    install_requires=['numpy', 'scipy', 'scikit-image', 'matplotlib', 'seaborn', 'pandas', 'numba'],
+    python_requires=">=3.9",
+    install_requires=[
+        "numpy",
+        "scipy",
+        "scikit-image",
+        "matplotlib",
+        "seaborn",
+        "pandas",
+        "numba",
+    ],
     author="Blake A. Wilson",
     author_email="blake.wilson@utdallas.edu",
     description="Python package for extract estimates of dye/peptide diffusion coefficients and loss rates from a time-sequence of fluorescence images.",
