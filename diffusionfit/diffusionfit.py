@@ -342,6 +342,7 @@ class GaussianFit(DiffusionFitBase):
 
     @property
     def fitting_parameters(self):
+        """The intensity model fitting paramaters from step 1."""
         t_v = self.times[self._idx_fitted_frames]
         E_vals = self._fitting_parameters[:, 0]
         gamma_vals = self._fitting_parameters[:, -1]
@@ -663,6 +664,7 @@ class PointClarkFit(DiffusionFitBase):
 
     @property
     def fitting_parameters(self):
+        """The intensity model fitting paramaters from step 1."""
         t_v = self.times[self._idx_fitted_frames]
         E_vals = self._fitting_parameters[:, 0]
         beta_vals = self._fitting_parameters[:, 1]
@@ -868,7 +870,7 @@ class AnisotropicGaussianFit(DiffusionFitBase):
 
     @property
     def time_resolved_diffusion(self):
-
+        """The time-resolved estimate of the diffusion coefficients."""
         t_v = self.fit_times
         gamma_x_vals = self._fitting_parameters[:, 1]
         lfit = self._leg_filter(t_v, gamma_x_vals ** 2)
@@ -1278,6 +1280,7 @@ class AnisotropicGaussianFit(DiffusionFitBase):
 
     @property
     def fitting_parameters(self):
+        """The intensity model fitting paramaters from step 1."""
         t_v = self.times[self._idx_fitted_frames]
         E_vals = self._fitting_parameters[:, 0]
         gamma_x_vals = self._fitting_parameters[:, 1]

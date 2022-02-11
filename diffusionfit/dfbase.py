@@ -367,18 +367,22 @@ class DiffusionFitBase(ABC):
 
     @property
     def fit_times(self):
+        """The time points included in the fitting."""
         return self.times[self._idx_fitted_frames]
 
     @property
     def step1_rmse(self):
+        """The root mean squared error for fitting the image intensity in step 1."""
         return self._fitting_scores[:, 0]
 
     @property
     def step2_rsquared(self):
+        """The r-squared value from fitting the time course to the linear diffusion model in step 2."""
         return self._linr_res.rvalue ** 2
 
     @property
     def effective_time(self):
+        """The maximum time point included in the fitting denoted as the effective time."""
         return np.max(self.fit_times)
 
     @staticmethod
@@ -413,7 +417,7 @@ class DiffusionFitBase(ABC):
 
     @property
     def time_resolved_diffusion(self):
-
+        """The time-resolved estimate of the diffusion coefficient."""
         t_v = self.fit_times
         gamma_vals = self._fitting_parameters[:, -1]
         lfit = self._leg_filter(t_v, gamma_vals ** 2)
