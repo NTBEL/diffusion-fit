@@ -77,6 +77,15 @@ parser.add_argument(
 )
 parser.set_defaults(apply_threshold=True)
 parser.add_argument(
+    "-start-frame",
+    nargs="?",
+    metavar="start_frame",
+    type=int,
+    default=None,
+    const=None,
+    help="Specify the initial frame to include in the analysis. Should be >= stim_frame.",
+)
+parser.add_argument(
     "-end-frame",
     nargs="?",
     metavar="end_frame",
@@ -194,6 +203,7 @@ for file in tqdm(files, desc="Samples: "):
         )
 
     D = dfit.fit(
+        start=args.start_frame,
         end=end_frame,
         verbose=False,
         apply_step1_threshold=args.apply_threshold,
