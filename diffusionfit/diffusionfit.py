@@ -1041,8 +1041,8 @@ class AnisotropicGaussianFit(DiffusionFitBase):
             axes[row, 1].imshow(
                 dF_sim, cmap="viridis", vmin=0, vmax=vmax, extent=extent
             )
-            axes[row, 1].set_xlabel(r"y ($\mu$m)", fontsize=14)
-            axes[row, 1].set_ylabel(r"x ($\mu$m)", fontsize=14)
+            axes[row, 1].set_xlabel(r"x ($\mu$m)", fontsize=14)
+            axes[row, 1].set_ylabel(r"y ($\mu$m)", fontsize=14)
             axes[row, 1].set_title(
                 "2D Anisotropic Gaussian Fit\nE: {:.1e} | $\gamma_x$: {:.1e} | $\gamma_y$: {:.1e} | RMSE: {:.1f} | RSSE: {:.1f}".format(
                     E, gamma_x, gamma_y, rmse, rsse
@@ -1181,8 +1181,8 @@ class AnisotropicGaussianFit(DiffusionFitBase):
             axes[row, 0].imshow(
                 image, cmap="viridis", vmin=0, vmax=1.5 * vmax, extent=extent
             )
-            axes[row, 0].set_xlabel(r"y ($\mu$m)", fontsize=14)
-            axes[row, 0].set_ylabel(r"x ($\mu$m)", fontsize=14)
+            axes[row, 0].set_xlabel(r"x ($\mu$m)", fontsize=14)
+            axes[row, 0].set_ylabel(r"y ($\mu$m)", fontsize=14)
             axes[row, 0].set_title(
                 "Exp. Image\nTime: {:.2f} s".format(time),
                 fontdict={"fontsize": 10},
