@@ -147,6 +147,7 @@ class DiffusionFitBase(ABC):
         apply_step1_threshold=True,
         step1_threshold=3,
         threshold_on="image",
+        multitry=False,
     ):
         if start is None:
             start = self._idx_zero_time
@@ -162,6 +163,8 @@ class DiffusionFitBase(ABC):
                 RuntimeWarning,
             )
             threshold_on = "image"
+        if multitry <= 1:
+            multitry = False
         self._set_n_params()
         self._idx_fitted_frames = list()
         self._fitted_times = list()
@@ -181,7 +184,7 @@ class DiffusionFitBase(ABC):
             n_peak = np.prod(img[peak_mask].shape)
             noise_mask = self.r > r_noise  # & (self.r < np.max(r_line))
 
-            fit_parms, sse, rmse = self._fit_intensity(img, peak)
+            fit_parms, sse, rmse = self._fit_intensity(img, peak, multitry=multitry)
 
             if threshold_on == "image":
                 tail_mean = img[noise_mask].mean()
@@ -302,7 +305,28 @@ class DiffusionFitBase(ABC):
         sse = measure.ss_error(I_exp, I_fit)
         return np.sqrt(sse)
 
-    def _fit_intensity(self, image, signal):
+    @staticmethod
+    def _multi_minimize(cost, initial, ntries=3, seed=143587):
+        cost_curr = np.inf
+        init_low = initial * 0.1
+        init_high = initial * 10
+        n_init = len(initial)
+        opt_res_curr = None
+        np.random.seed(seed)
+        for i in range(ntries):
+            init_guess = init_low + np.random.random(n_init) * (init_high - init_low)
+            # Minimize using the minimize function from scipy with Nelder-Mead method.
+            # opt_res stands for Optimizer Result
+            opt_res = minimize(cost, initial, method="Nelder-Mead")
+            # run it
+            fit_parms = opt_res.x  # index 0 is E, index 1 is gamma
+            fit_cost = opt_res.fun
+            if fit_cost < cost_curr:
+                cost_curr = fit_cost
+                opt_res_curr = opt_res
+        return opt_res_curr
+
+    def _fit_intensity(self, image, signal, multitry=False):
         """Non-linear fit of the images."""
         rmask = self.fitting_mask
 
@@ -319,7 +343,10 @@ class DiffusionFitBase(ABC):
         for i in range(1, self._n_params):
             initial_guess.append(100)
         initial_guess = np.array(initial_guess)
-        opt_res = minimize(cost, initial_guess, method="Nelder-Mead")
+        if multitry == False:
+            opt_res = minimize(cost, initial_guess, method="Nelder-Mead")
+        else:
+            opt_res = self._multi_minimize(cost, initial_guess, ntries=multitry)
         # Sum of squared error from the minimized cost fucntion.
         sse = opt_res.fun
         # Root mean squared error.

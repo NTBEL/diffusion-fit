@@ -144,6 +144,15 @@ parser.add_argument(
     help="Don't compute or subtract any background from the images when fitting the intensity.",
 )
 parser.set_defaults(no_background=False)
+parser.add_argument(
+    "-multitry",
+    nargs="?",
+    metavar="multitry",
+    type=int,
+    default=1,
+    const=3,
+    help="Specify the maximum frame to include in the analysis. Should larger than stim_frame.",
+)
 args = parser.parse_args()
 # Get the current directory from which to read files.
 current_path = os.path.abspath("./")
@@ -209,6 +218,7 @@ for file in tqdm(files, desc="Samples: "):
         apply_step1_threshold=args.apply_threshold,
         step1_threshold=args.peak_to_tail,
         threshold_on=args.threshold_on,
+        multitry=args.multitry,
     )
     if np.isnan(D).any():
         D = None
