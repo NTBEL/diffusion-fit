@@ -2,6 +2,7 @@
 """
 
 from abc import ABC, abstractmethod
+import os.path
 import warnings
 import numpy as np
 import scipy
@@ -14,6 +15,15 @@ import skimage.measure
 import matplotlib.pyplot as plt
 import seaborn as sns
 from tifffile import imwrite as tiffwrite
+
+try:
+    from tqdm import tqdm
+except ImportError:
+
+    def tqdm(iterator, **kwargs):
+        return iterator
+
+
 from . import measure
 from . import models
 
@@ -35,6 +45,9 @@ class DiffusionFitBase(ABC):
         subtract_background=True,
     ):
         self._img_file = img_file
+        self._img_file_nopath = os.path.splitext(
+            os.path.split(os.path.basename(os.path.normpath(img_file)))[1]
+        )[0]
         self.images = skio.imread(img_file)
         self.n_frames = len(self.images)
         self.n_pixels = np.prod(self.images[0].shape)
@@ -175,7 +188,7 @@ class DiffusionFitBase(ABC):
         r_line = np.abs(x_line)
         r_noise = np.max(r_line) - 10 * self.pixel_width
         gf_sigma = 5 * self.pixel_width
-        for f in range(start, end, interval):
+        for f in tqdm(range(start, end, interval), desc=self._img_file_nopath):
             img = self.images[f] - self.background
 
             peak_mask = (self.r > (self.r_stim + self.pixel_width)) & (self.r < r_peak)

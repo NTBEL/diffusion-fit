@@ -175,7 +175,7 @@ end_frame = args.end_frame
 if end_frame is not None:
     if end_frame < args.stim_frame:
         end_frame = None
-for file in tqdm(files, desc="Samples: "):
+for file in files:
     file_prefix = os.path.splitext(os.path.split(file)[1])[0]
     sample_name = os.path.splitext(
         os.path.split(os.path.basename(os.path.normpath(file)))[1]
