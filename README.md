@@ -11,11 +11,8 @@ Additionally, we have extended the framework to provide a model for fitting data
 
 ### What's new in
 
-#### version 0.4.0
- * New options define how the peak and tail signal are computed when applying the thresholding for images to determine whether to terminate the fitting.
- * New AnisotropicGaussianFit class for fitting images with anisotropic diffusion along the major (x,y) axes; the x and y axes can have different diffusion coefficients.
- * Additional output file from the CLI to store the measured diffusion coefficients and some other fitting diagnostics.
- * Additional output file from the CLI to store the input arguments used for the diffusionfit run.  
+#### version 0.5.0
+ * New option to specify how the noise is estimated from the tail signal when applying the thresholding for images to determine whether to terminate the fitting early: the `-threshold_noise` option from the command line.  
 
 See the [CHANGELOG](CHANGELOG.md) for additional details.  
 
@@ -56,16 +53,16 @@ Note that `diffusion-fit` has the following core dependencies:
    * [Numba](https://numba.pydata.org/)
 
 ### pip install
-You can install `diffusionfit` version 0.4.0 with `pip` sourced from the GitHub repo:
+You can install `diffusionfit` version 0.5.0 with `pip` sourced from the GitHub repo:
 
 ##### with git installed:
 ```
-pip install git+https://github.com/NTBEL/diffusion-fit@v0.4.0
+pip install git+https://github.com/NTBEL/diffusion-fit@v0.5.0
 ```
 
 ##### without git installed:
 ```
-pip install https://github.com/NTBEL/diffusion-fit/archive/refs/tags/v0.4.0.zip
+pip install https://github.com/NTBEL/diffusion-fit/archive/refs/tags/v0.5.0.zip
 ```
 ### Manual install
 First, download the repository. Then from the `diffusion-fit` folder/directory run
