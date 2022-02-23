@@ -20,7 +20,7 @@ class DiffusionFitBase(ABC):
 
     _threshold_on_options = ["image", "fit", "line", "filter"]
     _center_options = ["image", "intensity"]
-    _threshold_noise_options = ["std-dev", "std-error"]
+    _threshold_noise_options = ["std_dev", "std_error"]
 
     def __init__(
         self,
@@ -117,13 +117,12 @@ class DiffusionFitBase(ABC):
         if (self._idx_stimulation > 2) and subtract_background:
             self.background = self.images[: self._idx_stimulation - 1].mean(axis=0)
             self._bgavg = self.images[: self._idx_stimulation - 1].mean()
-            # self._bgstd = self.images[:self._idx_stimulation-1].std(axis=0)
             self._bgstd = self.background.std()
             print(self._bgstd)
-            # print("background ",self.background.shape)
         else:
             self.background = 0
-            # self._bgstd = 0
+            self._bgstd = 0
+            self._bgavg = 0
             # print("background ", self.background)
         # self.background = background
 
@@ -148,7 +147,7 @@ class DiffusionFitBase(ABC):
         apply_step1_threshold=True,
         step1_threshold=3,
         threshold_on="image",
-        threshold_noise="std-dev",
+        threshold_noise="std_dev",
     ):
         if start is None:
             start = self._idx_zero_time
@@ -164,7 +163,7 @@ class DiffusionFitBase(ABC):
                 RuntimeWarning,
             )
             threshold_on = "image"
-        if threshold_noise not in self._threshold_on_options:
+        if threshold_noise not in self._threshold_noise_options:
             warnings.warn(
                 "------threshold_noise = "
                 + str(threshold_noise)
@@ -173,7 +172,7 @@ class DiffusionFitBase(ABC):
                 + " ------\n------ Setting to default: std-dev ------",
                 RuntimeWarning,
             )
-            threshold_noise = "std-dev"
+            threshold_noise = "std_dev"
         self._set_n_params()
         self._idx_fitted_frames = list()
         self._fitted_times = list()
@@ -186,9 +185,8 @@ class DiffusionFitBase(ABC):
         gf_sigma = 5 * self.pixel_width
         for f in range(start, end, interval):
             img = self.images[f] - self.background
-            img_o = self.images[f]
             peak_mask = (self.r > (self.r_stim + self.pixel_width)) & (self.r < r_peak)
-            peak = img_o[peak_mask].mean()
+            peak = img[peak_mask].mean()
             peak_std = img[peak_mask].std()
             n_peak = np.prod(img[peak_mask].shape)
             noise_mask = self.r > r_noise  # & (self.r < np.max(r_line))
@@ -196,8 +194,8 @@ class DiffusionFitBase(ABC):
             fit_parms, sse, rmse = self._fit_intensity(img, peak)
 
             if threshold_on == "image":
-                tail_mean = img_o[noise_mask].mean()
-                tail_std = img_o[noise_mask].std()
+                tail_mean = img[noise_mask].mean()
+                tail_std = img[noise_mask].std()
                 n_tail = np.prod(img[noise_mask].shape)
                 tail_min = img[noise_mask].min()
                 tail_max = img[noise_mask].max()
@@ -224,6 +222,8 @@ class DiffusionFitBase(ABC):
                 tail_mean = I_line[noise_mask].mean()
                 tail_std = I_line[noise_mask].std()
                 n_tail = len(I_line[noise_mask])
+                tail_min = I_line[noise_mask].min()
+                tail_max = I_line[noise_mask].max()
             elif threshold_on == "filter":
                 img_gf = gaussian_filter(img, sigma=4)
                 peak = img_gf[peak_mask].mean()
@@ -231,11 +231,15 @@ class DiffusionFitBase(ABC):
                 tail_mean = img_gf[noise_mask].mean()
                 tail_std = img_gf[noise_mask].std()
                 n_tail = np.prod(img_gf[noise_mask].shape)
+                tail_min = img_gf[noise_mask].min()
+                tail_max = img_gf[noise_mask].max()
 
-            if threshold_noise == 'std-error':
+            if threshold_noise == "std_error":
                 tail_std /= np.sqrt(n_tail)
-
-            if apply_step1_threshold and (peak > tail_mean + step1_threshold*tail_std):
+            print(peak, tail_mean, tail_std, step1_threshold)
+            if apply_step1_threshold and (
+                peak < tail_mean + step1_threshold * tail_std
+            ):
                 if verbose:
                     print(
                         "stopping at frame {} time {} peak-signl {} <= tail-signal {} + {}x tail-std {}".format(
