@@ -135,8 +135,8 @@ parser.add_argument(
     nargs="?",
     metavar="threshold_noise",
     type=str,
-    default="std-dev",
-    help="Set how the noise in the tail region is determined for thresholding the fitting. Options are: std-dev - (default), use standard deviation of signal in the tail region. std-error - use the standard error in the tail region determined as std-dev/sqrt(N_values).",
+    default="std_dev",
+    help="Set how the noise in the tail region is determined for thresholding the fitting. Options are: std_dev - (default), use standard deviation of signal in the tail region. std_error - use the standard error in the tail region determined as std-dev/sqrt(N_values).",
 )
 parser.add_argument(
     "--anisotropic-gaussian",
@@ -218,7 +218,7 @@ for file in files:
         apply_step1_threshold=args.apply_threshold,
         step1_threshold=args.peak_to_tail,
         threshold_on=args.threshold_on,
-        multitry=args.multitry,
+        threshold_noise=args.threshold_noise,
     )
     if np.isnan(D).any():
         D = None
