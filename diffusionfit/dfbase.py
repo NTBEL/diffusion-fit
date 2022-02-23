@@ -1,8 +1,4 @@
-"""Base class for diffusion fitting.
-"""
-
 from abc import ABC, abstractmethod
-import os.path
 import warnings
 import numpy as np
 import scipy
@@ -15,15 +11,6 @@ import skimage.measure
 import matplotlib.pyplot as plt
 import seaborn as sns
 from tifffile import imwrite as tiffwrite
-
-try:
-    from tqdm import tqdm
-except ImportError:
-
-    def tqdm(iterator, **kwargs):
-        return iterator
-
-
 from . import measure
 from . import models
 
@@ -33,6 +20,7 @@ class DiffusionFitBase(ABC):
 
     _threshold_on_options = ["image", "fit", "line", "filter"]
     _center_options = ["image", "intensity"]
+    _threshold_noise_options = ["std-dev", "std-error"]
 
     def __init__(
         self,
@@ -45,9 +33,6 @@ class DiffusionFitBase(ABC):
         subtract_background=True,
     ):
         self._img_file = img_file
-        self._img_file_nopath = os.path.splitext(
-            os.path.split(os.path.basename(os.path.normpath(img_file)))[1]
-        )[0]
         self.images = skio.imread(img_file)
         self.n_frames = len(self.images)
         self.n_pixels = np.prod(self.images[0].shape)
@@ -131,7 +116,10 @@ class DiffusionFitBase(ABC):
             self._min_dim = "x"
         if (self._idx_stimulation > 2) and subtract_background:
             self.background = self.images[: self._idx_stimulation - 1].mean(axis=0)
+            self._bgavg = self.images[: self._idx_stimulation - 1].mean()
             # self._bgstd = self.images[:self._idx_stimulation-1].std(axis=0)
+            self._bgstd = self.background.std()
+            print(self._bgstd)
             # print("background ",self.background.shape)
         else:
             self.background = 0
@@ -160,7 +148,7 @@ class DiffusionFitBase(ABC):
         apply_step1_threshold=True,
         step1_threshold=3,
         threshold_on="image",
-        multitry=False,
+        threshold_noise="std-dev",
     ):
         if start is None:
             start = self._idx_zero_time
@@ -176,8 +164,16 @@ class DiffusionFitBase(ABC):
                 RuntimeWarning,
             )
             threshold_on = "image"
-        if multitry <= 1:
-            multitry = False
+        if threshold_noise not in self._threshold_on_options:
+            warnings.warn(
+                "------threshold_noise = "
+                + str(threshold_noise)
+                + " is not a valid option. ------\n------ Options are:"
+                + str(self._threshold_noise_options)
+                + " ------\n------ Setting to default: std-dev ------",
+                RuntimeWarning,
+            )
+            threshold_noise = "std-dev"
         self._set_n_params()
         self._idx_fitted_frames = list()
         self._fitted_times = list()
@@ -186,23 +182,27 @@ class DiffusionFitBase(ABC):
         r_peak = self.r_stim + 5 * self.pixel_width
         x_line = self._line
         r_line = np.abs(x_line)
-        r_noise = np.max(r_line) - 10 * self.pixel_width
+        r_noise = np.max(r_line) - 5 * self.pixel_width
         gf_sigma = 5 * self.pixel_width
-        for f in tqdm(range(start, end, interval), desc=self._img_file_nopath):
+        for f in range(start, end, interval):
             img = self.images[f] - self.background
-
+            img_o = self.images[f]
             peak_mask = (self.r > (self.r_stim + self.pixel_width)) & (self.r < r_peak)
-            peak = img[peak_mask].mean()
+            peak = img_o[peak_mask].mean()
             peak_std = img[peak_mask].std()
             n_peak = np.prod(img[peak_mask].shape)
             noise_mask = self.r > r_noise  # & (self.r < np.max(r_line))
 
-            fit_parms, sse, rmse = self._fit_intensity(img, peak, multitry=multitry)
+            fit_parms, sse, rmse = self._fit_intensity(img, peak)
 
             if threshold_on == "image":
-                tail_mean = img[noise_mask].mean()
-                tail_std = img[noise_mask].std()
+                tail_mean = img_o[noise_mask].mean()
+                tail_std = img_o[noise_mask].std()
                 n_tail = np.prod(img[noise_mask].shape)
+                tail_min = img[noise_mask].min()
+                tail_max = img[noise_mask].max()
+
+                # tail_std /= np.sqrt(n_tail)
             elif threshold_on == "fit":
                 img_fit = self.intensity_model(self.r, *fit_parms)
                 peak = img_fit[peak_mask].mean()
@@ -210,6 +210,8 @@ class DiffusionFitBase(ABC):
                 tail_mean = img_fit[noise_mask].mean()
                 tail_std = img_fit[noise_mask].std()
                 n_tail = np.prod(img_fit[noise_mask].shape)
+                tail_min = img[noise_mask].min()
+                tail_max = img[noise_mask].max()
             elif threshold_on == "line":
                 I_line = self.line_average(img)
                 # Estimate the peak and tail peaks
@@ -228,16 +230,18 @@ class DiffusionFitBase(ABC):
                 peak_std = img_gf[peak_mask].std()
                 tail_mean = img_gf[noise_mask].mean()
                 tail_std = img_gf[noise_mask].std()
+                n_tail = np.prod(img_gf[noise_mask].shape)
 
-            if apply_step1_threshold and (
-                peak <= (tail_mean + step1_threshold * tail_std)
-            ):
+            if threshold_noise == 'std-error':
+                tail_std /= np.sqrt(n_tail)
+
+            if apply_step1_threshold and (peak > tail_mean + step1_threshold*tail_std):
                 if verbose:
                     print(
                         "stopping at frame {} time {} peak-signl {} <= tail-signal {} + {}x tail-std {}".format(
                             f,
                             self.times[f],
-                            signal,
+                            peak,
                             tail_mean,
                             step1_threshold,
                             tail_std,
@@ -248,12 +252,15 @@ class DiffusionFitBase(ABC):
             rsse = self.rsse(img, fit_parms)
             if verbose:
                 print(
-                    "frame {} time {} peak-signal {} tail-signal {} tail-std {} fit_parms {} RMSE {} RSSE {:.1f}".format(
+                    "frame {} time {} peak-signal {} tail-signal {} tail-std {} tail-min {} tail-max {} bg-avg {} fit_parms {} RMSE {} RSSE {:.1f}".format(
                         f,
                         self.times[f],
-                        signal,
+                        peak,
                         tail_mean,
                         tail_std,
+                        tail_min,
+                        tail_max,
+                        self._bgavg,
                         fit_parms,
                         rmse,
                         rsse,
@@ -318,28 +325,7 @@ class DiffusionFitBase(ABC):
         sse = measure.ss_error(I_exp, I_fit)
         return np.sqrt(sse)
 
-    @staticmethod
-    def _multi_minimize(cost, initial, ntries=3, seed=143587):
-        cost_curr = np.inf
-        init_low = initial * 0.1
-        init_high = initial * 10
-        n_init = len(initial)
-        opt_res_curr = None
-        np.random.seed(seed)
-        for i in range(ntries):
-            init_guess = init_low + np.random.random(n_init) * (init_high - init_low)
-            # Minimize using the minimize function from scipy with Nelder-Mead method.
-            # opt_res stands for Optimizer Result
-            opt_res = minimize(cost, initial, method="Nelder-Mead")
-            # run it
-            fit_parms = opt_res.x  # index 0 is E, index 1 is gamma
-            fit_cost = opt_res.fun
-            if fit_cost < cost_curr:
-                cost_curr = fit_cost
-                opt_res_curr = opt_res
-        return opt_res_curr
-
-    def _fit_intensity(self, image, signal, multitry=False):
+    def _fit_intensity(self, image, signal):
         """Non-linear fit of the images."""
         rmask = self.fitting_mask
 
@@ -356,10 +342,7 @@ class DiffusionFitBase(ABC):
         for i in range(1, self._n_params):
             initial_guess.append(100)
         initial_guess = np.array(initial_guess)
-        if multitry == False:
-            opt_res = minimize(cost, initial_guess, method="Nelder-Mead")
-        else:
-            opt_res = self._multi_minimize(cost, initial_guess, ntries=multitry)
+        opt_res = minimize(cost, initial_guess, method="Nelder-Mead")
         # Sum of squared error from the minimized cost fucntion.
         sse = opt_res.fun
         # Root mean squared error.
