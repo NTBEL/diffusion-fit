@@ -1,6 +1,3 @@
-"""Base class for diffusion fitting.
-"""
-
 from abc import ABC, abstractmethod
 import warnings
 import numpy as np
@@ -23,6 +20,7 @@ class DiffusionFitBase(ABC):
 
     _threshold_on_options = ["image", "fit", "line", "filter"]
     _center_options = ["image", "intensity"]
+    _threshold_noise_options = ["std_dev", "std_error"]
 
     def __init__(
         self,
@@ -118,11 +116,13 @@ class DiffusionFitBase(ABC):
             self._min_dim = "x"
         if (self._idx_stimulation > 2) and subtract_background:
             self.background = self.images[: self._idx_stimulation - 1].mean(axis=0)
-            # self._bgstd = self.images[:self._idx_stimulation-1].std(axis=0)
-            # print("background ",self.background.shape)
+            self._bgavg = self.images[: self._idx_stimulation - 1].mean()
+            self._bgstd = self.background.std()
+            print(self._bgstd)
         else:
             self.background = 0
-            # self._bgstd = 0
+            self._bgstd = 0
+            self._bgavg = 0
             # print("background ", self.background)
         # self.background = background
 
@@ -147,6 +147,7 @@ class DiffusionFitBase(ABC):
         apply_step1_threshold=True,
         step1_threshold=3,
         threshold_on="image",
+        threshold_noise="std_dev",
     ):
         if start is None:
             start = self._idx_zero_time
@@ -162,6 +163,16 @@ class DiffusionFitBase(ABC):
                 RuntimeWarning,
             )
             threshold_on = "image"
+        if threshold_noise not in self._threshold_noise_options:
+            warnings.warn(
+                "------threshold_noise = "
+                + str(threshold_noise)
+                + " is not a valid option. ------\n------ Options are:"
+                + str(self._threshold_noise_options)
+                + " ------\n------ Setting to default: std-dev ------",
+                RuntimeWarning,
+            )
+            threshold_noise = "std_dev"
         self._set_n_params()
         self._idx_fitted_frames = list()
         self._fitted_times = list()
@@ -170,11 +181,10 @@ class DiffusionFitBase(ABC):
         r_peak = self.r_stim + 5 * self.pixel_width
         x_line = self._line
         r_line = np.abs(x_line)
-        r_noise = np.max(r_line) - 10 * self.pixel_width
+        r_noise = np.max(r_line) - 5 * self.pixel_width
         gf_sigma = 5 * self.pixel_width
         for f in range(start, end, interval):
             img = self.images[f] - self.background
-
             peak_mask = (self.r > (self.r_stim + self.pixel_width)) & (self.r < r_peak)
             peak = img[peak_mask].mean()
             peak_std = img[peak_mask].std()
@@ -187,6 +197,10 @@ class DiffusionFitBase(ABC):
                 tail_mean = img[noise_mask].mean()
                 tail_std = img[noise_mask].std()
                 n_tail = np.prod(img[noise_mask].shape)
+                tail_min = img[noise_mask].min()
+                tail_max = img[noise_mask].max()
+
+                # tail_std /= np.sqrt(n_tail)
             elif threshold_on == "fit":
                 img_fit = self.intensity_model(self.r, *fit_parms)
                 peak = img_fit[peak_mask].mean()
@@ -194,6 +208,8 @@ class DiffusionFitBase(ABC):
                 tail_mean = img_fit[noise_mask].mean()
                 tail_std = img_fit[noise_mask].std()
                 n_tail = np.prod(img_fit[noise_mask].shape)
+                tail_min = img[noise_mask].min()
+                tail_max = img[noise_mask].max()
             elif threshold_on == "line":
                 I_line = self.line_average(img)
                 # Estimate the peak and tail peaks
@@ -206,22 +222,30 @@ class DiffusionFitBase(ABC):
                 tail_mean = I_line[noise_mask].mean()
                 tail_std = I_line[noise_mask].std()
                 n_tail = len(I_line[noise_mask])
+                tail_min = I_line[noise_mask].min()
+                tail_max = I_line[noise_mask].max()
             elif threshold_on == "filter":
                 img_gf = gaussian_filter(img, sigma=4)
                 peak = img_gf[peak_mask].mean()
                 peak_std = img_gf[peak_mask].std()
                 tail_mean = img_gf[noise_mask].mean()
                 tail_std = img_gf[noise_mask].std()
+                n_tail = np.prod(img_gf[noise_mask].shape)
+                tail_min = img_gf[noise_mask].min()
+                tail_max = img_gf[noise_mask].max()
 
+            if threshold_noise == "std_error":
+                tail_std /= np.sqrt(n_tail)
+            print(peak, tail_mean, tail_std, step1_threshold)
             if apply_step1_threshold and (
-                peak <= (tail_mean + step1_threshold * tail_std)
+                peak < tail_mean + step1_threshold * tail_std
             ):
                 if verbose:
                     print(
                         "stopping at frame {} time {} peak-signl {} <= tail-signal {} + {}x tail-std {}".format(
                             f,
                             self.times[f],
-                            signal,
+                            peak,
                             tail_mean,
                             step1_threshold,
                             tail_std,
@@ -232,12 +256,15 @@ class DiffusionFitBase(ABC):
             rsse = self.rsse(img, fit_parms)
             if verbose:
                 print(
-                    "frame {} time {} peak-signal {} tail-signal {} tail-std {} fit_parms {} RMSE {} RSSE {:.1f}".format(
+                    "frame {} time {} peak-signal {} tail-signal {} tail-std {} tail-min {} tail-max {} bg-avg {} fit_parms {} RMSE {} RSSE {:.1f}".format(
                         f,
                         self.times[f],
-                        signal,
+                        peak,
                         tail_mean,
                         tail_std,
+                        tail_min,
+                        tail_max,
+                        self._bgavg,
                         fit_parms,
                         rmse,
                         rsse,

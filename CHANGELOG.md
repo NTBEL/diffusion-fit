@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.5.0] - 20222-02-23
+
+### Added
+* `threshold_noise` option to the command line script and as keyword argument to the fit function defined in DiffusionFitBase.
+* Added new `threshold_noise` option to the README.
+
+
 ## [0.4.0] - 2022-02-08
 
 ### Added
@@ -16,7 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - In the CLI script and additional output of the input arguments to a text file diffusion_fitting/diffusionfit_commandline_args.txt.   
 - Additional documentation on the programmatic and command line usage in the README.  
 - New keyword argument for the `DiffusionFitBase.__init__` function `subtract_background` which sets whether a background image should be computed and subtracted during the fitting.  
-- New optional flag `--no-background` for the CLI script to set models not to try and compute or subtract background from the images. This corresponds to the `subtract_background` keyword argument to  `DiffusionFitBase.__init__`. 
+- New optional flag `--no-background` for the CLI script to set models not to try and compute or subtract background from the images. This corresponds to the `subtract_background` keyword argument to  `DiffusionFitBase.__init__`.
 
 ### Changed
 - In the export_to_csv function of DiffusionFitBase the addition of the linear fit column was changed to use the DataFrame `assign` function to get rid of the SettingWithCopyWarning. The column name was also changed from `Linear-Fit` to `LinearFit`.

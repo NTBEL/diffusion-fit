@@ -11,11 +11,8 @@ Additionally, we have extended the framework to provide a model for fitting data
 
 ### What's new in
 
-#### version 0.4.0
- * New options define how the peak and tail signal are computed when applying the thresholding for images to determine whether to terminate the fitting.
- * New AnisotropicGaussianFit class for fitting images with anisotropic diffusion along the major (x,y) axes; the x and y axes can have different diffusion coefficients.
- * Additional output file from the CLI to store the measured diffusion coefficients and some other fitting diagnostics.
- * Additional output file from the CLI to store the input arguments used for the diffusionfit run.  
+#### version 0.5.0
+ * New option to specify how the noise is estimated from the tail signal when applying the thresholding for images to determine whether to terminate the fitting early: the `-threshold_noise` option from the command line.  
 
 See the [CHANGELOG](CHANGELOG.md) for additional details.  
 
@@ -56,16 +53,16 @@ Note that `diffusion-fit` has the following core dependencies:
    * [Numba](https://numba.pydata.org/)
 
 ### pip install
-You can install `diffusionfit` version 0.4.0 with `pip` sourced from the GitHub repo:
+You can install `diffusionfit` version 0.5.0 with `pip` sourced from the GitHub repo:
 
 ##### with git installed:
 ```
-pip install git+https://github.com/NTBEL/diffusion-fit@v0.4.0
+pip install git+https://github.com/NTBEL/diffusion-fit@v0.5.0
 ```
 
 ##### without git installed:
 ```
-pip install https://github.com/NTBEL/diffusion-fit/archive/refs/tags/v0.4.0.zip
+pip install https://github.com/NTBEL/diffusion-fit/archive/refs/tags/v0.5.0.zip
 ```
 ### Manual install
 First, download the repository. Then from the `diffusion-fit` folder/directory run
@@ -160,6 +157,7 @@ Additionally, there a many optional input flags that can be used to tune the fit
   * `--loss-rate` : The fitter will compute and output an estimate of the loss rate for the diffusing species from the decay of the maximum intensity fitting parameter using a model for its time course that is derived from the point source model.
   * `--point-clark` : Fit the intensity using the Point-Clark model (PointClarkFit). The Point-Clark model is derived from a combination of the point source diffusion model and the Clark equation for receptor-response (Hill equation with Hill coefficient of 1). This model should provide a more accurate estimate of peptide diffusion where the intensity comes from a fluorescent receptor-based sensor.
   * `-threshold-on [threshold_on]` : This option can be used to set how the peak and tail tail values for thresholding the fitting are computed. Options are: image - (default), compute on the (background subtracted) image. filter - compute on a Gaussian filtered version of the image. line - compute on the line ROI taken along the minimum image dimension. fit - compute on the fit of the image to the intensity model.
+  * `-threshold-noise [threshold_noise]` : This option can be used to set how the noise in the tail region is determined for thresholding the fitting. Options are: std_dev - (default), use standard deviation of signal in the tail region. std_error - use the standard error in the tail region determined as std-dev/sqrt(N_values).
   * `--anisotropic-gaussian` : Use the Anisotropic Gaussian model (AnisotropicGaussianFit) to fit the diffusion intensity for cases where diffusion along the x and y dimensions is different.
   * `--no-background` : Don't compute or subtract any background from the images when fitting the intensity. This option can be used in cases where images are already pre-processed to remove the background flurorescence or when the input has been converted to the relative difference (dF/F) in flurorescence intensity (relevant for peptide sensors).     
 

@@ -77,6 +77,15 @@ parser.add_argument(
 )
 parser.set_defaults(apply_threshold=True)
 parser.add_argument(
+    "-start-frame",
+    nargs="?",
+    metavar="start_frame",
+    type=int,
+    default=None,
+    const=None,
+    help="Specify the initial frame to include in the analysis. Should be >= stim_frame.",
+)
+parser.add_argument(
     "-end-frame",
     nargs="?",
     metavar="end_frame",
@@ -122,6 +131,14 @@ parser.add_argument(
     help="Set how the peak and tail tail values for thresholding the fitting are computed. Options are: image - (default), compute on the (background subtracted) image. filter - compute on a Gaussian filtered version of the image. line - compute on the line ROI taken along the minimum image dimension. fit - compute on the fit of the image to the intensity model.",
 )
 parser.add_argument(
+    "-threshold-noise",
+    nargs="?",
+    metavar="threshold_noise",
+    type=str,
+    default="std_dev",
+    help="Set how the noise in the tail region is determined for thresholding the fitting. Options are: std_dev - (default), use standard deviation of signal in the tail region. std_error - use the standard error in the tail region determined as std-dev/sqrt(N_values).",
+)
+parser.add_argument(
     "--anisotropic-gaussian",
     dest="anisotropic_gaussian",
     action="store_true",
@@ -135,6 +152,7 @@ parser.add_argument(
     help="Don't compute or subtract any background from the images when fitting the intensity.",
 )
 parser.set_defaults(no_background=False)
+
 args = parser.parse_args()
 # Get the current directory from which to read files.
 current_path = os.path.abspath("./")
@@ -157,7 +175,7 @@ end_frame = args.end_frame
 if end_frame is not None:
     if end_frame < args.stim_frame:
         end_frame = None
-for file in tqdm(files, desc="Samples: "):
+for file in files:
     file_prefix = os.path.splitext(os.path.split(file)[1])[0]
     sample_name = os.path.splitext(
         os.path.split(os.path.basename(os.path.normpath(file)))[1]
@@ -194,11 +212,13 @@ for file in tqdm(files, desc="Samples: "):
         )
 
     D = dfit.fit(
+        start=args.start_frame,
         end=end_frame,
         verbose=False,
         apply_step1_threshold=args.apply_threshold,
         step1_threshold=args.peak_to_tail,
         threshold_on=args.threshold_on,
+        threshold_noise=args.threshold_noise,
     )
     if np.isnan(D).any():
         D = None
