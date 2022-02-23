@@ -131,6 +131,14 @@ parser.add_argument(
     help="Set how the peak and tail tail values for thresholding the fitting are computed. Options are: image - (default), compute on the (background subtracted) image. filter - compute on a Gaussian filtered version of the image. line - compute on the line ROI taken along the minimum image dimension. fit - compute on the fit of the image to the intensity model.",
 )
 parser.add_argument(
+    "-threshold-noise",
+    nargs="?",
+    metavar="threshold_noise",
+    type=str,
+    default="std-dev",
+    help="Set how the noise in the tail region is determined for thresholding the fitting. Options are: std-dev - (default), use standard deviation of signal in the tail region. std-error - use the standard error in the tail region determined as std-dev/sqrt(N_values).",
+)
+parser.add_argument(
     "--anisotropic-gaussian",
     dest="anisotropic_gaussian",
     action="store_true",
@@ -144,15 +152,7 @@ parser.add_argument(
     help="Don't compute or subtract any background from the images when fitting the intensity.",
 )
 parser.set_defaults(no_background=False)
-parser.add_argument(
-    "-multitry",
-    nargs="?",
-    metavar="multitry",
-    type=int,
-    default=1,
-    const=3,
-    help="Specify the maximum frame to include in the analysis. Should larger than stim_frame.",
-)
+
 args = parser.parse_args()
 # Get the current directory from which to read files.
 current_path = os.path.abspath("./")
