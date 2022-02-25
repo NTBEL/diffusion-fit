@@ -57,7 +57,7 @@ parser.add_argument(
     "-peak-to-tail",
     nargs="?",
     metavar="peak_to_tail",
-    type=int,
+    type=float,
     default=3,
     help="Set the peak/tail threshold during step 1 fitting for terminating the fitting analysis.",
 )
