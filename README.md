@@ -11,8 +11,8 @@ Additionally, we have extended the framework to provide a model for fitting data
 
 ### What's new in
 
-#### version 0.5.0
- * New option to specify how the noise is estimated from the tail signal when applying the thresholding for images to determine whether to terminate the fitting early: the `-threshold_noise` option from the command line.  
+#### version 0.6.0
+ * The command line interface now accepts float values for the `-peak-to-tail` input option instead of just integers.
 
 See the [CHANGELOG](CHANGELOG.md) for additional details.  
 
@@ -53,16 +53,25 @@ Note that `diffusion-fit` has the following core dependencies:
    * [Numba](https://numba.pydata.org/)
 
 ### pip install
-You can install `diffusionfit` version 0.5.0 with `pip` sourced from the GitHub repo:
+You can install `diffusionfit` version 0.6.0 with `pip` sourced from the GitHub repo:
 
 ##### with git installed:
+Fresh install:
 ```
-pip install git+https://github.com/NTBEL/diffusion-fit@v0.5.0
+pip install git+https://github.com/NTBEL/diffusion-fit@v0.6.0
 ```
-
+Or to upgrade from an older version:
+```
+pip install --upgrade git+https://github.com/NTBEL/diffusion-fit@v0.6.0
+```
 ##### without git installed:
+Fresh install:
 ```
-pip install https://github.com/NTBEL/diffusion-fit/archive/refs/tags/v0.5.0.zip
+pip install https://github.com/NTBEL/diffusion-fit/archive/refs/tags/v0.6.0.zip
+```
+Or to upgrade from an older version:
+```
+pip install --upgrade https://github.com/NTBEL/diffusion-fit/archive/refs/tags/v0.6.0.zip
 ```
 ### Manual install
 First, download the repository. Then from the `diffusion-fit` folder/directory run
