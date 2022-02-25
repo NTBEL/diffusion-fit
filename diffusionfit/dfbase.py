@@ -236,7 +236,7 @@ class DiffusionFitBase(ABC):
 
             if threshold_noise == "std_error":
                 tail_std /= np.sqrt(n_tail)
-            print(peak, tail_mean, tail_std, step1_threshold)
+            # print(peak, tail_mean, tail_std, step1_threshold)
             if apply_step1_threshold and (
                 peak < tail_mean + step1_threshold * tail_std
             ):
