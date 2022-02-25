@@ -4,7 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [0.5.0] - 20222-02-23
+## [0.6.0] - 2022-02-25
+
+### Changed
+* The type for the `-peak-to-tail` option in the CLI was changed from int to float. 
+
+## [0.5.0] - 2022-02-23
 
 ### Added
 * `threshold_noise` option to the command line script and as keyword argument to the fit function defined in DiffusionFitBase.
