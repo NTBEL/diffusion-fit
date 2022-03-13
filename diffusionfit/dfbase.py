@@ -33,7 +33,7 @@ class DiffusionFitBase(ABC):
         subtract_background=True,
     ):
         self._img_file = img_file
-        self.images = skio.imread(img_file)
+        self.images = skio.imread(img_file, plugin="tifffile")
         self.n_frames = len(self.images)
         self.n_pixels = np.prod(self.images[0].shape)
         # Assume input for indexing of frames starts at 1.
