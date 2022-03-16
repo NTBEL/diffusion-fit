@@ -518,6 +518,13 @@ class DiffusionFitBase(ABC):
         fp_df_step2 = fp_df_step2.assign(LinearFit=lin_fit)
         fp_df_step2.to_csv(prefix + "_step_2_fits.csv", index=False)
 
+    def export_to_df(self):
+        fp_df = self.fitting_parameters
+        fp_df_step2 = fp_df[["Time", "Gamma^2"]]
+        lin_fit = self.diffusion_model(fp_df["Time"].values, self._Ds * 1e8, self._t0)
+        fp_df_step2 = fp_df_step2.assign(LinearFit=lin_fit)
+        return fp_df, fp_df_step2
+
     def write_step1_fits_to_tiff(self, saveas="step1_fits.tif"):
         trajectory = list()
         fps = 1 / self.timestep
