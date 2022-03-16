@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="diffusionfit",
-    version="0.6.0",
+    version="0.7.0",
     python_requires=">=3.9",
     install_requires=[
         "numpy",
@@ -15,6 +15,8 @@ setuptools.setup(
         "seaborn",
         "pandas",
         "numba",
+        "streamlit",
+        "plotly",
     ],
     author="Blake A. Wilson",
     author_email="blake.wilson@utdallas.edu",

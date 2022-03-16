@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.optimize import curve_fit, minimize
 from scipy.ndimage import gaussian_filter
-from .dfbase import DiffusionFitBase
+from diffusionfit.dfbase import DiffusionFitBase
 from . import models
 from . import measure
 
@@ -353,7 +353,7 @@ class GaussianFit(DiffusionFitBase):
             fp_vals.append(
                 {
                     "Time": t_v[i],
-                    "E": E_vals[i],
+                    "Imax": E_vals[i],
                     "Gamma": gamma_vals[i],
                     "Gamma^2": gamma_vals[i] ** 2,
                     "RMSE": RMSE[i],
@@ -676,7 +676,7 @@ class PointClarkFit(DiffusionFitBase):
             fp_vals.append(
                 {
                     "Time": t_v[i],
-                    "Emax": E_vals[i],
+                    "Imax": E_vals[i],
                     "Beta": beta_vals[i],
                     "Gamma": gamma_vals[i],
                     "Gamma^2": gamma_vals[i] ** 2,
@@ -1292,7 +1292,7 @@ class AnisotropicGaussianFit(DiffusionFitBase):
             fp_vals.append(
                 {
                     "Time": t_v[i],
-                    "E": E_vals[i],
+                    "Imax": E_vals[i],
                     "Gamma_x": gamma_x_vals[i],
                     "Gamma_y": gamma_y_vals[i],
                     "Gamma_x^2": gamma_x_vals[i] ** 2,
