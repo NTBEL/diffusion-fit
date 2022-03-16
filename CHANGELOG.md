@@ -4,10 +4,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.7.0] - 2022-03-16
+
+### Added
+* First version of streamlit app. This adds streamlit and plotly dependencies.
+* A run_app module to launch the streamlit app from the command line.
+* Added a section to the REAMDE to show how to launch the streamlit app.
+* New export_to_df function in the DiffusionFitBase class.
+
+### Changed
+* Amplitude parameter name in fitting outputs was changed from `E` to `Imax`.
+
+
 ## [0.6.0] - 2022-02-25
 
 ### Changed
-* The type for the `-peak-to-tail` option in the CLI was changed from int to float. 
+* The type for the `-peak-to-tail` option in the CLI was changed from int to float.
 
 ## [0.5.0] - 2022-02-23
 
