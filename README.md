@@ -51,6 +51,8 @@ Note that `diffusion-fit` has the following core dependencies:
    * [Matplotlib](https://matplotlib.org/)
    * [seaborn](https://seaborn.pydata.org/)
    * [Numba](https://numba.pydata.org/)
+   * [streamlit](https://streamlit.io/)
+   * [plotly](https://plotly.com/)
 
 ### pip install
 You can install `diffusionfit` version 0.6.0 with `pip` sourced from the GitHub repo:
@@ -58,20 +60,20 @@ You can install `diffusionfit` version 0.6.0 with `pip` sourced from the GitHub 
 ##### with git installed:
 Fresh install:
 ```
-pip install git+https://github.com/NTBEL/diffusion-fit@v0.6.0
+pip install git+https://github.com/NTBEL/diffusion-fit@v0.7.0
 ```
 Or to upgrade from an older version:
 ```
-pip install --upgrade git+https://github.com/NTBEL/diffusion-fit@v0.6.0
+pip install --upgrade git+https://github.com/NTBEL/diffusion-fit@v0.7.0
 ```
 ##### without git installed:
 Fresh install:
 ```
-pip install https://github.com/NTBEL/diffusion-fit/archive/refs/tags/v0.6.0.zip
+pip install https://github.com/NTBEL/diffusion-fit/archive/refs/tags/v0.7.0.zip
 ```
 Or to upgrade from an older version:
 ```
-pip install --upgrade https://github.com/NTBEL/diffusion-fit/archive/refs/tags/v0.6.0.zip
+pip install --upgrade https://github.com/NTBEL/diffusion-fit/archive/refs/tags/v0.7.0.zip
 ```
 ### Manual install
 First, download the repository. Then from the `diffusion-fit` folder/directory run
@@ -111,7 +113,7 @@ molecules released from a point-like source:
 
 In all cases, the 2D fluorescence distribution of each image in the time lapse of fluorescence images is fitted with the 2D intensity model and then the diffusion coefficient is extracted in a second linear fitting step. This two-step fitting procedure was adapted from the methods used to analyze integrative optical imaging data as described in Nicholson and Tao 1993 [doi: 10.1016/S0006-3495(93)81324-9](https://doi.org/10.1016/S0006-3495(93)81324-9) and Hrabe and Hrabetova 2019 [doi: 10.1016/j.bpj.2019.08.031](https://doi.org/10.1016/j.bpj.2019.08.031).
 
-`diffusionfit` can be used both programatically or from the command line. The command line interface simplifies the process for quickly initiating analysis of multiple image files (tiff files), and it automatically generates plot images of the fits and exports the fitting parameters to a csv file for further analysis for each image file (dumped into a new output fold named diffusion_fitting). However, programmatic use offers more flexibility for generating customized fitting and analysis workflows.   
+`diffusionfit` can be used programatically, from the command line, or via a locally streamlit app. The command line interface simplifies the process for quickly initiating analysis of multiple image files (tiff files), and it automatically generates plot images of the fits and exports the fitting parameters to a csv file for further analysis for each image file (dumped into a new output fold named diffusion_fitting). The streamlit app only allows for working with one file at a time but the graphical interface makes it much easier to interact with the fitting procedure. However, programmatic use offers more flexibility for generating customized fitting and analysis workflows.   
 
 ### Programmatic use
 The fitting models can be directly imported from `diffusionfit`:
@@ -194,6 +196,12 @@ diffusionfit can be used from the command line as in the following example:
 python -m diffusionfit 0.25 2.486 50 75 --loss-rate
 ```
 
+### streamlit app use
+The diffusionfit streamlit app can be launched from the command line as follows:
+```
+python -m diffusionfit.run_app
+```
+This should launch the streamlit app locally in your browser. From there you can upload data and run the fitting. 
 ------
 
 # Contact
