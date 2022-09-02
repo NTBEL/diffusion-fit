@@ -23,7 +23,12 @@ except ImportError:
         return iterator
 
 
-from .diffusionfit import GaussianFit, PointClarkFit, AnisotropicGaussianFit
+from .diffusionfit import (
+    GaussianFit,
+    PointClarkFit,
+    AnisotropicGaussianFit,
+    AsymmetricFit,
+)
 
 
 parser = argparse.ArgumentParser()
@@ -153,6 +158,14 @@ parser.add_argument(
 )
 parser.set_defaults(no_background=False)
 
+parser.add_argument(
+    "--asymmetric-fit",
+    dest="asymmetric_fit",
+    action="store_true",
+    help="Use the Anisotropic Gaussian model (AnisotropicGaussianFit) to fit the diffusion intensity for cases where diffusion along the x and y dimensions is different.",
+)
+parser.set_defaults(asymmetric_fit=False)
+
 args = parser.parse_args()
 # Get the current directory from which to read files.
 current_path = os.path.abspath("./")
@@ -180,6 +193,7 @@ for file in files:
     sample_name = os.path.splitext(
         os.path.split(os.path.basename(os.path.normpath(file)))[1]
     )[0]
+    print(sample_name)
     if args.point_clark:
         dfit = PointClarkFit(
             file,
@@ -192,6 +206,16 @@ for file in files:
         )
     elif args.anisotropic_gaussian:
         dfit = AnisotropicGaussianFit(
+            file,
+            stimulation_frame=args.stim_frame,
+            timestep=args.timestep,
+            pixel_width=args.pixel_size,
+            stimulation_radius=args.d_stim / 2,
+            center=center,
+            subtract_background=(not args.no_background),
+        )
+    elif args.asymmetric_fit:
+        dfit = AsymmetricFit(
             file,
             stimulation_frame=args.stim_frame,
             timestep=args.timestep,
@@ -220,6 +244,9 @@ for file in files:
         threshold_on=args.threshold_on,
         threshold_noise=args.threshold_noise,
     )
+    # print(dfit._intensity_ratios)
+    # plt.plot(dfit._intensity_ratios)
+    # plt.show()
     if np.isnan(D).any():
         D = None
         Dstar_values.append({"sample:": sample_name, "D*(x10^-7 cm^2/s)": D})
@@ -275,6 +302,7 @@ for file in files:
         dfit.write_step1_fits_to_tiff(saveas=os.path.join(out_path, tiff_name))
 
     dfit.export_to_csv(os.path.join(out_path, file_prefix))
+
 Dstar_values_df = pd.DataFrame(Dstar_values)
 if args.anisotropic_gaussian:
     # We need to adjust the DataFrame to split the Dx and Dy values so it can

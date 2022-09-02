@@ -105,7 +105,7 @@ class DiffusionFitBase(ABC):
         y_max = np.max(self.y_centers - self._diffusion_center[0])
         self.r_max = np.min([x_max, y_max])
         self.rmask_rmax_in = self.r < self.r_max
-        # xmask = (xv - self._diffusion_center[1]) < -10
+        # xmask = (xv - self._diffusion_center[1]) < -5
         self.fitting_mask = self.rmask_stim_out & self.rmask_rmax_in  # & xmask
         self.n_fitted_pixels = np.prod(self.r[self.fitting_mask].shape)
         if y_max < x_max:

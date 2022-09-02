@@ -1314,3 +1314,38 @@ class AnisotropicGaussianFit(DiffusionFitBase):
     @property
     def step2_rsquared(self):
         return np.array([self._linr_res_x.rvalue ** 2, self._linr_res_y.rvalue ** 2])
+
+
+class AsymmetricFit(GaussianFit):
+    def __init__(self, *args, **kwargs):
+
+        self._asymm_axis = kwargs.pop("asymm_axis", "x")
+        super().__init__(*args, **kwargs)
+        self._intensity_ratios = list()
+        if self._asymm_axis == "y":
+            self._asymm_mask_p = (
+                self.yv - self._diffusion_center[0]
+            ) > 0.5 * self.pixel_width
+            self._asymm_mask_n = (
+                self.yv - self._diffusion_center[0]
+            ) < -0.5 * self.pixel_width
+        elif self._asymm_axis == "x":
+            self._asymm_mask_p = (
+                self.xv - self._diffusion_center[1]
+            ) > 0.5 * self.pixel_width
+            self._asymm_mask_n = (
+                self.xv - self._diffusion_center[1]
+            ) < -0.5 * self.pixel_width
+        return
+
+    def fit(self, *args, **kwargs):
+        super().fit(*args, **kwargs)
+        for idx in self._idx_fitted_frames:
+            img = self.images[idx] - self.background
+            p_tot = np.sum(img[self._asymm_mask_p])
+            n_tot = np.sum(img[self._asymm_mask_n])
+            ratio = p_tot / n_tot
+            self._intensity_ratios.append(ratio)
+        self._intensity_ratios = np.array(self._intensity_ratios)
+        ir_bar = self._intensity_ratios.mean()
+        return np.array([self._Ds, ir_bar])
