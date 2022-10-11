@@ -44,7 +44,7 @@ class DiffusionFitBase(ABC):
         self._idx_zero_time = stimulation_frame
         self.timestep = timestep
         self.pixel_width = pixel_width
-        self._idx_img_center = (0.5 * np.array(self.images[0].shape)).astype(np.int)
+        self._idx_img_center = (0.5 * np.array(self.images[0].shape)).astype(np.int) + 1
         self.img_center = (
             np.array(self._idx_img_center) * pixel_width - 0.5 * pixel_width
         )

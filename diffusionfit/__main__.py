@@ -165,6 +165,15 @@ parser.add_argument(
     help="Use the Anisotropic Gaussian model (AnisotropicGaussianFit) to fit the diffusion intensity for cases where diffusion along the x and y dimensions is different.",
 )
 parser.set_defaults(asymmetric_fit=False)
+parser.add_argument(
+    "-asymm-axis",
+    nargs="?",
+    metavar="asymm_axis",
+    type=str,
+    default="x",
+    const="x",
+    help="Specify the axis for asymmetric diffusion analysis. Should be either x or y. Default is x",
+)
 
 args = parser.parse_args()
 # Get the current directory from which to read files.
@@ -223,6 +232,7 @@ for file in files:
             stimulation_radius=args.d_stim / 2,
             center=center,
             subtract_background=(not args.no_background),
+            asymm_axis=args.asymm_axis,
         )
     else:
         dfit = GaussianFit(
@@ -244,7 +254,7 @@ for file in files:
         threshold_on=args.threshold_on,
         threshold_noise=args.threshold_noise,
     )
-    # print(dfit._intensity_ratios)
+    print(dfit._intensity_ratios)
     # plt.plot(dfit._intensity_ratios)
     # plt.show()
     if np.isnan(D).any():

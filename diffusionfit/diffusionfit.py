@@ -1322,30 +1322,58 @@ class AsymmetricFit(GaussianFit):
         self._asymm_axis = kwargs.pop("asymm_axis", "x")
         super().__init__(*args, **kwargs)
         self._intensity_ratios = list()
+        self._intensity_ratio = 1
+        # print(self._asymm_axis, self._diffusion_center, self.img_center, self._idx_img_center)
         if self._asymm_axis == "y":
             self._asymm_mask_p = (
                 self.yv - self._diffusion_center[0]
-            ) > 0.5 * self.pixel_width
+            ) > 0  # 0.5 * self.pixel_width
             self._asymm_mask_n = (
                 self.yv - self._diffusion_center[0]
-            ) < -0.5 * self.pixel_width
+            ) < 0  # -0.5 * self.pixel_width
         elif self._asymm_axis == "x":
             self._asymm_mask_p = (
                 self.xv - self._diffusion_center[1]
-            ) > 0.5 * self.pixel_width
+            ) > 0  # 0.5 * self.pixel_width
             self._asymm_mask_n = (
                 self.xv - self._diffusion_center[1]
-            ) < -0.5 * self.pixel_width
+            ) < 0  # -0.5 * self.pixel_width
         return
 
     def fit(self, *args, **kwargs):
+        Dfree = kwargs.pop("free_diffusion", 44e-7)
         super().fit(*args, **kwargs)
-        for idx in self._idx_fitted_frames:
+        for idx in self._idx_fitted_frames[-3:]:
             img = self.images[idx] - self.background
+            # mask = self._asymm_mask_p & (img > 0.)
             p_tot = np.sum(img[self._asymm_mask_p])
+            # p_tot = img[mask].shape[0] #* img[mask].shape[1]
+            # mask = self._asymm_mask_n & (img > 0.)
+            # n_tot = img[mask].shape[0] #* img[mask].shape[1]
             n_tot = np.sum(img[self._asymm_mask_n])
+            # if (p_tot > 0) and (n_tot > 0):
             ratio = p_tot / n_tot
+            # else:
+            #    ratio = 1.
+            # print(p_tot, n_tot, ratio, img.max(), img[self._asymm_mask_p].shape)
             self._intensity_ratios.append(ratio)
         self._intensity_ratios = np.array(self._intensity_ratios)
         ir_bar = self._intensity_ratios.mean()
-        return np.array([self._Ds, ir_bar])
+        self._intensity_ratio = ir_bar
+
+        return self.asymm_diffusion(Dfree)
+
+    @property
+    def intensity_ratio(self):
+        return self._intensity_ratio
+
+    def asymm_tortuosity(self, Dfree):
+        ir_bar_sq = self.intensity_ratio ** 2
+        lambda_p = np.sqrt((Dfree * (1 + 1 / ir_bar_sq)) / (2 * self._Ds))
+        lambda_n = self.intensity_ratio * lambda_p
+        return np.array([lambda_n, lambda_p])
+
+    def asymm_diffusion(self, Dfree):
+        tort = self.asymm_tortuosity(Dfree)
+        Dside = Dfree / tort ** 2
+        return Dside
