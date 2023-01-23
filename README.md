@@ -6,13 +6,28 @@
 
 The underlying point-source paradigm and two-step fitting procedure employed by the models is adapted from the methods used to analyze integrative optical imaging data ([Nicholson and Tao 1993](https://doi.org/10.1016/S0006-3495(93)81324-9) and [Hrabe and Hrabetova 2019](https://doi.org/10.1016/j.bpj.2019.08.031)). **diffusion-fit** therefore provides a model for fitting 2D imaging data for fluorescent dyes released from a point-like source as in integrative optical imaging ([Nicholson and Tao 1993](https://doi.org/10.1016/S0006-3495(93)81324-9)) or nanovesicle photorelease ([Xiong et al. 2021](https://doi.org/10.1101/2021.09.10.459853)) experiments.
 
-Additionally, we have extended the framework to provide a model for fitting data from receptor-based fluorescent peptide sensors, such as dLight ([Patriarchi et al. 2018](https://dx.doi.org/10.1126/science.aat4422)) and kLight ([Abraham et al. 2021](https://doi.org/10.1038/s41386-021-01168-2)), when the target peptides are released from a point-like source as in nanovesicle photorelease ([Xiong et al. 2021](https://doi.org/10.1101/2021.09.10.459853)) experiments.
-**diffusion-fit** also further extends the point-source paradigm to allow for additional fitting and estimation of first order loss rate constants from the 2D imaging data, which are particularly relevant for peptide volume transmission in the brain ([Xiong et al. 2021](https://doi.org/10.1101/2021.09.10.459853)).  
+### Experimental features
+
+#### Receptor-based fluorescent sensors
+We have extended the framework to provide a model for fitting data from receptor-based fluorescent peptide sensors, such as dLight ([Patriarchi et al. 2018](https://dx.doi.org/10.1126/science.aat4422)) and kLight ([Abraham et al. 2021](https://doi.org/10.1038/s41386-021-01168-2)), when the target peptides are released from a point-like source as in nanovesicle photorelease ([Xiong et al. 2021](https://doi.org/10.1101/2021.09.10.459853)) experiments. This model combines the Gaussian point-source model with the Clark Equation for receptor-response to characterize the sensor signal based on receptor occupation, assuming target binding to the sensor is much faster than diffusional changes such that sensor occupation remains at quasi-equilibrium. 
+
+#### First-order loss rate estimation
+
+**diffusion-fit** also further extends the point-source paradigm to allow for additional fitting and estimation of first order loss rate constants from the 2D imaging data, which are particularly relevant for peptide volume transmission in the brain ([Xiong et al. 2021](https://doi.org/10.1101/2021.09.10.459853)).
+
+#### Anisotropic diffusion fitting
+
+Additionally, we have extended the framework to provide a model that allows Anisotropy in the diffusion coefficient along the x and y directions.
+
+#### Asymmetric diffusion fitting
+
+Lastly, we have extended the framework to provide a model for asymmetric diffusion along a single dimension (x-dimension), which may occur at the boundary between regions of different tortuosity. This model uses a semi-empirically derived equations relating the extent of asymmetry and the Gaussian estimate of the average diffusion coefficient to estimate the diffusion coefficients on the two sides of the boundary (assumed to be semgmented along the x-direction).  
 
 ### What's new in
 
-#### version 0.6.0
- * The command line interface now accepts float values for the `-peak-to-tail` input option instead of just integers.
+#### version 0.8.0
+ * Asymmetric diffusion model: class `AssymetricFit`. Also usable from the CLI and the streamlit app.
+
 
 See the [CHANGELOG](CHANGELOG.md) for additional details.  
 
@@ -55,25 +70,25 @@ Note that `diffusion-fit` has the following core dependencies:
    * [plotly](https://plotly.com/)
 
 ### pip install
-You can install `diffusionfit` version 0.6.0 with `pip` sourced from the GitHub repo:
+You can install `diffusionfit` version 0.8.0 with `pip` sourced from the GitHub repo:
 
 ##### with git installed:
 Fresh install:
 ```
-pip install git+https://github.com/NTBEL/diffusion-fit@v0.7.0
+pip install git+https://github.com/NTBEL/diffusion-fit@v0.8.0
 ```
 Or to upgrade from an older version:
 ```
-pip install --upgrade git+https://github.com/NTBEL/diffusion-fit@v0.7.0
+pip install --upgrade git+https://github.com/NTBEL/diffusion-fit@v0.8.0
 ```
 ##### without git installed:
 Fresh install:
 ```
-pip install https://github.com/NTBEL/diffusion-fit/archive/refs/tags/v0.7.0.zip
+pip install https://github.com/NTBEL/diffusion-fit/archive/refs/tags/v0.8.0.zip
 ```
 Or to upgrade from an older version:
 ```
-pip install --upgrade https://github.com/NTBEL/diffusion-fit/archive/refs/tags/v0.7.0.zip
+pip install --upgrade https://github.com/NTBEL/diffusion-fit/archive/refs/tags/v0.8.0.zip
 ```
 ### Manual install
 First, download the repository. Then from the `diffusion-fit` folder/directory run
@@ -105,11 +120,12 @@ See: [CHANGELOG](CHANGELOG.md)
 # Documentation and Usage
 
 ### Quick Overview
-Currently, `diffusionfit` defines the **GaussianFit**, **PointClarkFit**, and **AnisotropicGaussianFit** classes, which define models to fit the 2D fluorescence intensity distribution and estimate the diffusion coefficient of
+Currently, `diffusionfit` defines the **GaussianFit**, **PointClarkFit**, **AnisotropicGaussianFit**, and **AsymmetricFit** classes, which define models to fit the 2D fluorescence intensity distribution and estimate the diffusion coefficient of
 molecules released from a point-like source:
   * **GaussianFit** assumes the fluorescence signal comes directly from the diffusing species and that the diffusion cloud has an isotropic Gaussian distribution that expands in width over time as in the point source diffusion model.
   * **PointClarkFit** assumes the fluorescent signal comes from the diffusing species binding to a fluorescent receptor-based sensor such as the dLight or kLight peptide sensors. The diffusion is still assumed to follow the isotropic point source model but the resulting fluorescent signal follows the Clark equation for receptor-response with the diffusing molecule as the ligand and the fluorescent sensor as the receptor.
   * **AnisotropicGaussianFit** is also based on the point source diffusion model and assumes the fluorescence signal comes directly from the diffusing species, but allows the diffusion cloud to have an anisotropic Gaussian distribution that expands in width at different rates along the x and y dimensions over time. This model decouples diffusion in the x and y directions allowing the two dimensions to have different diffusion coefficients.
+  * **AsymmetricFit** is also based on the point source diffusion model and assumes the fluorescence signal comes directly from the diffusing species, but allows the diffusion cloud to diffuse asymetrically along a given dimension; that is, two halves of the region (positive/negative) can have different tortuosity and the resulting diffusion cloud is asymmetric. 
 
 In all cases, the 2D fluorescence distribution of each image in the time lapse of fluorescence images is fitted with the 2D intensity model and then the diffusion coefficient is extracted in a second linear fitting step. This two-step fitting procedure was adapted from the methods used to analyze integrative optical imaging data as described in Nicholson and Tao 1993 [doi: 10.1016/S0006-3495(93)81324-9](https://doi.org/10.1016/S0006-3495(93)81324-9) and Hrabe and Hrabetova 2019 [doi: 10.1016/j.bpj.2019.08.031](https://doi.org/10.1016/j.bpj.2019.08.031).
 
@@ -171,6 +187,8 @@ Additionally, there a many optional input flags that can be used to tune the fit
   * `-threshold-noise [threshold_noise]` : This option can be used to set how the noise in the tail region is determined for thresholding the fitting. Options are: std_dev - (default), use standard deviation of signal in the tail region. std_error - use the standard error in the tail region determined as std-dev/sqrt(N_values).
   * `--anisotropic-gaussian` : Use the Anisotropic Gaussian model (AnisotropicGaussianFit) to fit the diffusion intensity for cases where diffusion along the x and y dimensions is different.
   * `--no-background` : Don't compute or subtract any background from the images when fitting the intensity. This option can be used in cases where images are already pre-processed to remove the background flurorescence or when the input has been converted to the relative difference (dF/F) in flurorescence intensity (relevant for peptide sensors).     
+  * `--asymmetric-fit` : Fit the intensity using the Asymmetric model (AsymmetricFit). 
+  * `-asym-axis` : Specify the axis for asymmetric diffusion analysis. Should be either x or y. Default is x.
 
 The usage amd full set of command line options can be accessed at the command line by using the `--help` flag:
 ```
