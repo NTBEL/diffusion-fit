@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.8.0] - 2023-01-23
+
+### Added
+* `AsymmetricFit` class for asymmetric diffusion fitting.
+* Details for the Asymmetric fitting to the README.
+* `Asymmetric` option and some associated inputs in the streamlit app interface.
+
+
+### Changed
+* diffusionfit module name (`diffusionfit.diffusionfit`) to fit, i.e. `diffusionfit.fit`
+* Try/except for import of `cli` from streamlit in run_app.py. Using `from streamlit.web import cli as stcli` in under the `except` for streamlit 1.17.0 compatibility.
+
 ## [0.7.0] - 2022-03-16
 
 ### Added
