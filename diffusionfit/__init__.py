@@ -1,1 +1,1 @@
-from .diffusionfit import GaussianFit, PointClarkFit, AnisotropicGaussianFit
+from .fit import GaussianFit, PointClarkFit, AnisotropicGaussianFit, AsymmetricFit
