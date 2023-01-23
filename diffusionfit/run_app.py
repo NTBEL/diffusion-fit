@@ -1,6 +1,11 @@
 import os
 import sys
-from streamlit import cli as stcli
+try:
+    # Older versions of streamlit, such as 1.7.0.
+    from streamlit import cli as stcli
+except:
+    # streamlit 1.17.0 compatibility. 
+    from streamlit.web import cli as stcli    
 
 APP_DIR = os.path.dirname(__file__)
 APP_FILE = os.path.join(APP_DIR, "streamlit_app.py")
