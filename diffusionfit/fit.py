@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.optimize import curve_fit, minimize
 from scipy.ndimage import gaussian_filter
-from diffusionfit.dfbase import DiffusionFitBase
+from .dfbase import DiffusionFitBase 
 from . import models
 from . import measure
 
