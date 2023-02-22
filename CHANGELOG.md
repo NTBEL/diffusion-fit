@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * `AsymmetricFit` class for asymmetric diffusion fitting.
 * Details for the Asymmetric fitting to the README.
 * `Asymmetric` option and some associated inputs in the streamlit app interface.
+* Requirements file: requirements.txt
+* Conda environment file: environment.yml
 
 
 ### Changed
