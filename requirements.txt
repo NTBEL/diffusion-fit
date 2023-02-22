@@ -1,0 +1,10 @@
+numpy
+scipy
+scikit-image
+matplotlib
+seaborn
+pandas
+numba
+streamlit==1.7.0
+click==8.0.3
+plotly
