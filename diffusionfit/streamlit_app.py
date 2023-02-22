@@ -59,7 +59,7 @@ st.markdown("------")
 required_input_columns = st.columns(4)
 
 timestep = required_input_columns[0].number_input("time step (s) :", 0.01, value=0.25)
-pixel_size = required_input_columns[1].number_input("pixel size (um):", 0.1, value=1.0)
+pixel_size = required_input_columns[1].number_input("pixel size (um):", min_value=0.001, step=0.001, value=1.000, format="%.3f")
 stim_frame = required_input_columns[2].number_input("stimulation frame:", 1)
 d_stim = required_input_columns[3].number_input("stim. zone diameter (um):", 0.0)
 
