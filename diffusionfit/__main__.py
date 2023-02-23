@@ -23,7 +23,7 @@ except ImportError:
         return iterator
 
 
-from .diffusionfit import (
+from .fit import (
     GaussianFit,
     PointClarkFit,
     AnisotropicGaussianFit,
