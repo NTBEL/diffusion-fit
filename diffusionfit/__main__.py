@@ -254,9 +254,7 @@ for file in files:
         threshold_on=args.threshold_on,
         threshold_noise=args.threshold_noise,
     )
-    print(dfit._intensity_ratios)
-    # plt.plot(dfit._intensity_ratios)
-    # plt.show()
+
     if np.isnan(D).any():
         D = None
         Dstar_values.append({"sample:": sample_name, "D*(x10^-7 cm^2/s)": D})
