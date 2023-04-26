@@ -25,8 +25,8 @@ Lastly, we have extended the framework to provide a model for asymmetric diffusi
 
 ### What's new in
 
-#### version 0.8.1
- * Asymmetric diffusion model: class `AssymetricFit`. Also usable from the CLI and the streamlit app.
+#### version 0.8.2
+ * Bug fix in the CLI.
 
 
 See the [CHANGELOG](CHANGELOG.md) for additional details.  
@@ -70,25 +70,25 @@ Note that `diffusion-fit` has the following core dependencies:
    * [plotly](https://plotly.com/)
 
 ### pip install
-You can install `diffusionfit` version 0.8.1 with `pip` sourced from the GitHub repo:
+You can install `diffusionfit` version 0.8.2 with `pip` sourced from the GitHub repo:
 
 ##### with git installed:
 Fresh install:
 ```
-pip install git+https://github.com/NTBEL/diffusion-fit@v0.8.1
+pip install git+https://github.com/NTBEL/diffusion-fit@v0.8.2
 ```
 Or to upgrade from an older version:
 ```
-pip install --upgrade git+https://github.com/NTBEL/diffusion-fit@v0.8.1
+pip install --upgrade git+https://github.com/NTBEL/diffusion-fit@v0.8.2
 ```
 ##### without git installed:
 Fresh install:
 ```
-pip install https://github.com/NTBEL/diffusion-fit/archive/refs/tags/v0.8.1.zip
+pip install https://github.com/NTBEL/diffusion-fit/archive/refs/tags/v0.8.2.zip
 ```
 Or to upgrade from an older version:
 ```
-pip install --upgrade https://github.com/NTBEL/diffusion-fit/archive/refs/tags/v0.8.1.zip
+pip install --upgrade https://github.com/NTBEL/diffusion-fit/archive/refs/tags/v0.8.2.zip
 ```
 ### Manual install
 First, download the repository. Then from the `diffusion-fit` folder/directory run

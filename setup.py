@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="diffusionfit",
-    version="0.8.1",
+    version="0.8.2",
     python_requires=">=3.9",
     install_requires=[
         "numpy",
